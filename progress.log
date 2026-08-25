@@ -71,3 +71,20 @@
   - Synthetic browser pointer events may not have an active pointer, so
     `setPointerCapture` must tolerate `NotFoundError` in tests.
 ---
+
+## 2026-08-25 03:30 - US-005
+- Implemented canvas blob production when pointer resizing ends.
+- The component sizes an offscreen canvas to the final visual dimensions,
+  prefers `createImageBitmap`, falls back to the captured image, closes any
+  bitmap, and emits `image-editor:resize-end` with `{ blob, width, height }`.
+- Added browser coverage for both bitmap and fallback draw paths, updated
+  runtime architecture documentation, and marked US-005 complete.
+- Files changed: `src/index.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `specs/prd.json`, `progress.log`.
+- **Learnings for future iterations:**
+  - Canvas output is transient and should not become component state; only
+    the emitted blob and dimensions cross the public event boundary.
+  - Browser tests can replace canvas methods and restore them after asserting
+    draw source, canvas dimensions, and blob output.
+---

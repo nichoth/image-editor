@@ -128,3 +128,169 @@ test('resizes proportionally and emits a throttled resize event', async t => {
     t.equal(resizeEvents[0]?.detail.width, 360)
     t.equal(resizeEvents[0]?.detail.height, 270)
 })
+
+test('produces a blob from an image bitmap when resizing ends', async t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const handle = el?.querySelector('.bottom-right') as HTMLElement
+    const drawnSources:Array<CanvasImageSource> = []
+    const bitmap = { close () {} } as ImageBitmap
+    const originalCreateImageBitmap = globalThis.createImageBitmap
+    const originalGetContext = HTMLCanvasElement.prototype.getContext
+    const originalToBlob = HTMLCanvasElement.prototype.toBlob
+    const browser = globalThis as {
+        createImageBitmap?: typeof globalThis.createImageBitmap
+    }
+    let blobWidth = 0
+    let blobHeight = 0
+    let didCloseBitmap = false
+    const blob = new Blob(['resized'])
+
+    browser.createImageBitmap = async () => bitmap
+    const mockContext = {
+        drawImage (source:CanvasImageSource) {
+            drawnSources.push(source)
+        }
+    } as unknown as CanvasRenderingContext2D
+    HTMLCanvasElement.prototype.getContext = (() => mockContext) as unknown as
+        typeof HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.toBlob = function (callback) {
+        blobWidth = this.width
+        blobHeight = this.height
+        callback(blob)
+    }
+    bitmap.close = () => {
+        didCloseBitmap = true
+    }
+
+    const resizeEnds:Array<CustomEvent<{
+        blob:Blob
+        width:number
+        height:number
+    }>> = []
+    el?.addEventListener('image-editor:resize-end', event => {
+        resizeEnds.push(event as CustomEvent<{
+            blob:Blob
+            width:number
+            height:number
+        }>)
+    })
+
+    handle.dispatchEvent(new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientX: 320,
+        clientY: 240,
+        pointerId: 9
+    }))
+    handle.dispatchEvent(new PointerEvent('pointermove', {
+        bubbles: true,
+        clientX: 360,
+        clientY: 270,
+        pointerId: 9
+    }))
+    handle.dispatchEvent(new PointerEvent('pointerup', {
+        bubbles: true,
+        clientX: 360,
+        clientY: 270,
+        pointerId: 9
+    }))
+
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    t.equal(resizeEnds.length, 1)
+    t.equal(resizeEnds[0]?.detail.blob, blob)
+    t.equal(resizeEnds[0]?.detail.width, 360)
+    t.equal(resizeEnds[0]?.detail.height, 270)
+    t.equal(blobWidth, 360)
+    t.equal(blobHeight, 270)
+    t.equal(drawnSources[0], bitmap)
+    t.ok(didCloseBitmap)
+
+    browser.createImageBitmap = originalCreateImageBitmap
+    HTMLCanvasElement.prototype.getContext = originalGetContext
+    HTMLCanvasElement.prototype.toBlob = originalToBlob
+})
+
+test('falls back to drawing the image when bitmap creation is unavailable',
+    async t => {
+        document.body.innerHTML = `
+            <image-editor>
+                <img src="image.jpg" width="320" height="240" alt="A test">
+            </image-editor>
+        `
+
+        const el = document.querySelector('image-editor')
+        const handle = el?.querySelector('.bottom-right') as HTMLElement
+        const image = el?.querySelector('img') as HTMLImageElement
+        const originalCreateImageBitmap = globalThis.createImageBitmap
+        const originalGetContext = HTMLCanvasElement.prototype.getContext
+        const originalToBlob = HTMLCanvasElement.prototype.toBlob
+        const browser = globalThis as {
+            createImageBitmap?: typeof globalThis.createImageBitmap
+        }
+        const drawnSources:Array<CanvasImageSource> = []
+        const blob = new Blob(['resized'])
+        let blobWidth = 0
+        let blobHeight = 0
+
+        browser.createImageBitmap = undefined
+        const mockContext = {
+            drawImage (source:CanvasImageSource) {
+                drawnSources.push(source)
+            }
+        } as unknown as CanvasRenderingContext2D
+        HTMLCanvasElement.prototype.getContext = (() => mockContext) as
+            unknown as typeof HTMLCanvasElement.prototype.getContext
+        HTMLCanvasElement.prototype.toBlob = function (callback) {
+            blobWidth = this.width
+            blobHeight = this.height
+            callback(blob)
+        }
+
+        const resizeEnds:Array<{
+            blob:Blob
+            width:number
+            height:number
+        }> = []
+        el?.addEventListener('image-editor:resize-end', event => {
+            resizeEnds.push((event as CustomEvent).detail)
+        })
+
+        handle.dispatchEvent(new PointerEvent('pointerdown', {
+            bubbles: true,
+            clientX: 320,
+            clientY: 240,
+            pointerId: 10
+        }))
+        handle.dispatchEvent(new PointerEvent('pointermove', {
+            bubbles: true,
+            clientX: 360,
+            clientY: 270,
+            pointerId: 10
+        }))
+        handle.dispatchEvent(new PointerEvent('pointerup', {
+            bubbles: true,
+            clientX: 360,
+            clientY: 270,
+            pointerId: 10
+        }))
+
+        await new Promise(resolve => setTimeout(resolve, 0))
+
+        t.equal(resizeEnds.length, 1)
+        t.equal(resizeEnds[0]?.blob, blob)
+        t.equal(resizeEnds[0]?.width, 360)
+        t.equal(resizeEnds[0]?.height, 270)
+        t.equal(blobWidth, 360)
+        t.equal(blobHeight, 270)
+        t.equal(drawnSources[0], image)
+
+        browser.createImageBitmap = originalCreateImageBitmap
+        HTMLCanvasElement.prototype.getContext = originalGetContext
+        HTMLCanvasElement.prototype.toBlob = originalToBlob
+    })

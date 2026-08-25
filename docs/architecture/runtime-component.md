@@ -50,6 +50,11 @@ rendered dimensions and pointer position, captures the pointer, and emits the
 namespaced `image-editor:resize-start` event. Pointer movement keeps the
 image's aspect ratio, updates inline `width` and `height`, and coalesces the
 namespaced `image-editor:resize` event to one emission per animation frame.
+On pointerup, the final dimensions are rendered to an offscreen canvas. The
+component prefers `createImageBitmap(image)` as the draw source and falls
+back to the captured image element when bitmap creation is unavailable or
+fails. A `Blob` produced by `canvas.toBlob()` is emitted in the
+`image-editor:resize-end` detail with the final width and height.
 
 ## DOM and styling boundaries
 
@@ -63,6 +68,8 @@ FOUCE guard.
 ## Events
 
 The base class supplies namespaced event helpers. US-004 adds
-`image-editor:resize-start` and `image-editor:resize`. The resize event detail
-is `{ width, height }` in CSS pixels. Resize interaction is pointer-based and
-uses pointer capture when the browser has an active pointer.
+`image-editor:resize-start` and `image-editor:resize`. US-005 adds
+`image-editor:resize-end` with `{ blob, width, height }` detail. Resize event
+dimensions are CSS pixels, and the blob canvas uses those same pixel
+dimensions. Resize interaction is pointer-based and uses pointer capture
+when the browser has an active pointer.

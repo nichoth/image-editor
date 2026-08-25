@@ -24,6 +24,12 @@ type ResizeState = {
     readonly handle:HTMLElement
 }
 
+type ResizeBlobDetail = {
+    readonly blob:Blob
+    readonly width:number
+    readonly height:number
+}
+
 export class ImageEditor extends WebComponent.create('image-editor') {
     #image:HTMLImageElement|null = null
     #resizeFrame:number|null = null
@@ -103,15 +109,24 @@ export class ImageEditor extends WebComponent.create('image-editor') {
         }
     }
 
-    handlePointerUp = (event:PointerEvent):void => {
+    handlePointerUp = async (event:PointerEvent):Promise<void> => {
         const state = this.#resizeState
         if (!state || state.pointerId !== event.pointerId) return
         this.cancelResizeFrame()
         if (state.handle.hasPointerCapture(event.pointerId)) {
             state.handle.releasePointerCapture(event.pointerId)
         }
+        const dimensions = this.#resizeDimensions ?? state.start
         this.#resizeState = null
         this.#resizeDimensions = null
+        const blob = await createResizeBlob(this.#image, dimensions)
+        if (!blob) return
+        this.emit<ResizeBlobDetail>('resize-end', {
+            detail: {
+                blob,
+                ...dimensions
+            }
+        })
     }
 
     private cancelResizeFrame ():void {
@@ -120,6 +135,47 @@ export class ImageEditor extends WebComponent.create('image-editor') {
             this.#resizeFrame = null
         }
     }
+}
+
+async function createResizeBlob (
+    image:HTMLImageElement|null,
+    dimensions:{ readonly width:number; readonly height:number }
+):Promise<Blob|null> {
+    if (!image || !Number.isFinite(dimensions.width) ||
+        !Number.isFinite(dimensions.height) || dimensions.width <= 0 ||
+        dimensions.height <= 0) {
+        return null
+    }
+
+    const canvas = document.createElement('canvas')
+    canvas.width = dimensions.width
+    canvas.height = dimensions.height
+    const context = canvas.getContext('2d')
+    if (!context) return null
+
+    let source:CanvasImageSource = image
+    let bitmap:ImageBitmap|null = null
+    if (typeof globalThis.createImageBitmap === 'function') {
+        try {
+            bitmap = await globalThis.createImageBitmap(image)
+            source = bitmap
+        } catch (_) {
+            bitmap = null
+        }
+    }
+
+    try {
+        context.drawImage(source, 0, 0, dimensions.width, dimensions.height)
+        return await canvasToBlob(canvas)
+    } finally {
+        bitmap?.close()
+    }
+}
+
+function canvasToBlob (canvas:HTMLCanvasElement):Promise<Blob|null> {
+    return new Promise(resolve => {
+        canvas.toBlob(resolve)
+    })
 }
 
 function createResizeHandles (editor:ImageEditor) {
