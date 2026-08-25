@@ -1,4 +1,8 @@
 :root {
+    --image-editor-outline-color: black;
+    --image-editor-outline-hidden-color: transparent;
+    --image-editor-outline-width: 2px;
+    --image-editor-outline-style: dashed;
     --image-editor-handle-size: 10px;
     --image-editor-handle-bg: white;
     --image-editor-handle-border: black;

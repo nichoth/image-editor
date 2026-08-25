@@ -1,5 +1,6 @@
 import { test } from '@substrate-system/tapzero'
 import '../src/index.js'
+import { shouldHideResizeAffordance } from '../src/resize-visibility.js'
 
 test('wraps the first child image in a positioned container', t => {
     document.body.innerHTML = `
@@ -14,7 +15,7 @@ test('wraps the first child image in a positioned container', t => {
     const image = container?.querySelector('img')
 
     t.ok(container, 'should render the image container')
-    t.equal(container?.className, 'image-editor-container')
+    t.ok(container?.classList.contains('image-editor-container'))
     t.equal(image?.getAttribute('src'), 'image.jpg')
     t.equal(image?.getAttribute('width'), '320')
     t.equal(container?.children.length, 6)
@@ -47,6 +48,64 @@ test('renders four corner resize handles', t => {
     t.ok(corners.includes('image-editor-handle top-right'))
     t.ok(corners.includes('image-editor-handle bottom-left'))
     t.ok(corners.includes('image-editor-handle bottom-right'))
+})
+
+test('defaults visible to touch', t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor') as HTMLElement & {
+        visible:string
+    }
+
+    t.equal(el.visible, 'touch')
+})
+
+test('touch visibility follows the touch-device result', t => {
+    t.ok(shouldHideResizeAffordance('touch', false))
+    t.ok(!shouldHideResizeAffordance('touch', true))
+})
+
+test('visible hover hides affordances until the container is hovered', t => {
+    document.body.innerHTML = `
+        <image-editor visible="hover">
+            <img src="image.jpg" width="320" height="240">
+        </image-editor>
+    `
+
+    const container = document.querySelector('.image-editor-container')
+
+    t.ok(container?.classList.contains('hide-resize-affordance'))
+})
+
+test('visible always keeps affordances visible', t => {
+    document.body.innerHTML = `
+        <image-editor visible="always">
+            <img src="image.jpg" width="320" height="240">
+        </image-editor>
+    `
+
+    const container = document.querySelector('.image-editor-container')
+
+    t.ok(!container?.classList.contains('hide-resize-affordance'))
+})
+
+test('changing visible updates the rendered affordance mode', t => {
+    document.body.innerHTML = `
+        <image-editor visible="always">
+            <img src="image.jpg" width="320" height="240">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const container = el?.querySelector('.image-editor-container')
+
+    el?.setAttribute('visible', 'hover')
+
+    t.ok(container?.classList.contains('hide-resize-affordance'))
 })
 
 test('styles the outline and handles for corner resizing', t => {

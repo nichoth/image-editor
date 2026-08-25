@@ -10,7 +10,9 @@ image-editor {
 
 .image-editor-container {
     position: relative;
-    outline: 2px dashed black;
+    outline: var(--image-editor-outline-width)
+        var(--image-editor-outline-style)
+        var(--image-editor-outline-color);
 }
 
 .image-editor-overlay {
@@ -102,7 +104,8 @@ image-editor {
     width: var(--image-editor-handle-size);
     height: var(--image-editor-handle-size);
     background: var(--image-editor-handle-bg);
-    border: var(--image-editor-handle-border-width) solid var(--image-editor-handle-border);
+    border: var(--image-editor-handle-border-width) solid
+        var(--image-editor-handle-border);
     box-sizing: border-box;
     transform: translate(-50%, -50%);
 
@@ -131,5 +134,24 @@ image-editor {
         bottom: 0;
         cursor: nwse-resize;
         transform: translate(50%, 50%);
+    }
+}
+
+.image-editor-container.hide-resize-affordance {
+    outline-color: var(--image-editor-outline-hidden-color);
+
+    &:hover, &:focus-within {
+        outline-color: var(--image-editor-outline-color);
+    }
+
+    & .image-editor-handle {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    &:hover .image-editor-handle,
+    &:focus-within .image-editor-handle {
+        opacity: 1;
+        pointer-events: auto;
     }
 }

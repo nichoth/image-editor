@@ -6,6 +6,11 @@ import {
     getResizeDimensions,
     normalizeMinimumDimension
 } from './resize-math.js'
+import {
+    normalizeResizeVisibility,
+    shouldHideResizeAffordance,
+    type ResizeVisibility
+} from './resize-visibility.js'
 
 const debug = Debug('image-editor')
 
@@ -60,7 +65,9 @@ export class ImageEditor extends withWildcards(
     WebComponent.create('image-editor')
 ) {
     static reflectedBooleanAttributes = ['free-form']
-    static reflectedStringAttributes = ['min-width', 'min-height']
+    static reflectedStringAttributes = [
+        'min-width', 'min-height', 'visible'
+    ]
 
     get freeForm ():boolean {
         return this.hasAttribute('free-form')
@@ -86,6 +93,14 @@ export class ImageEditor extends withWildcards(
         this.setAttribute('min-height', String(value))
     }
 
+    get visible ():ResizeVisibility {
+        return normalizeResizeVisibility(this.getAttribute('visible'))
+    }
+
+    set visible (value:ResizeVisibility) {
+        this.setAttribute('visible', value)
+    }
+
     private _image:HTMLImageElement|null = null
     private _altObserver:MutationObserver|null = null
     private _resizeDimensions:{ width:number; height:number }|null = null
@@ -106,10 +121,17 @@ export class ImageEditor extends withWildcards(
         }
         const container = document.createElement('div')
         container.className = 'image-editor-container'
+        updateResizeVisibility(container, this.visible, isTouchDevice())
         container.append(this._image)
         container.append(createEditOverlay(this, this._image))
         container.append(...createResizeHandles(this))
         this.replaceChildren(container)
+    }
+
+    handleChange_visible = ():void => {
+        const container = this.querySelector('.image-editor-container')
+        if (!(container instanceof HTMLElement)) return
+        updateResizeVisibility(container, this.visible, isTouchDevice())
     }
 
     disconnectedCallback () {
@@ -466,4 +488,31 @@ function getMinimumDimension (value:string|null):number {
     return normalizeMinimumDimension(dimension)
 }
 
+function updateResizeVisibility (
+    container:HTMLElement,
+    visibility:ResizeVisibility,
+    touchDevice:boolean
+):void {
+    container.classList.toggle('hide-resize-affordance',
+        shouldHideResizeAffordance(visibility, touchDevice))
+}
+
 ImageEditor.define()
+
+/**
+ * Check to see if this device supports touch.
+ * Uses criteria pulled from Modernizr:
+ * https://github.com/Modernizr/Modernizr/blob/
+ * da22eb27631fc4957f67607fe6042e85c0a84656/
+ * feature-detects/touchevents.js#L40
+ *
+ * @return {boolean} - true if the current device supports touch.
+ */
+function isTouchDevice () {
+    return Boolean(
+        'ontouchstart' in window ||
+        navigator.maxTouchPoints > 0 ||
+        // @ts-expect-error old
+        (window.DocumentTouch && document instanceof window.DocumentTouch)
+    )
+}
