@@ -2,7 +2,7 @@ import '../src/index.css'
 import '../src/index.js'
 
 if (import.meta.env.DEV || import.meta.env.MODE !== 'production') {
-    localStorage.setItem('DEBUG', '{{component-name}}')
+    localStorage.setItem('DEBUG', 'image-editor')
 } else {
     localStorage.removeItem('DEBUG')
 }
@@ -13,7 +13,7 @@ if (import.meta.env.DEV || import.meta.env.MODE !== 'production') {
 // rendered output as if it were authored content.
 document.body.insertAdjacentHTML(
     'beforeend',
-    '<{{component-name}}></{{component-name}}>'
+    '<image-editor></image-editor>'
 )
 
 /**
@@ -27,7 +27,7 @@ document.body.insertAdjacentHTML(
  */
 await Promise.race([
     Promise.allSettled([
-        customElements.whenDefined('{{component-name}}')
+        customElements.whenDefined('image-editor')
     ]),
     new Promise(resolve => {
         setTimeout(resolve, 2000)

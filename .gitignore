@@ -8,4 +8,10 @@ public
 docs/*
 !docs/GLOSSARY.md
 !docs/adr/
+!docs/architecture/
+!docs/architecture/**
 .claude
+specs
+tasks
+PROMPT.md
+ralph_codex.sh

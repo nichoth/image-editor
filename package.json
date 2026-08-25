@@ -1,5 +1,5 @@
 {
-  "name": "{{package-name}}",
+  "name": "@substrate-system/image-editor",
   "private": true,
   "type": "module",
   "version": "0.0.0",
@@ -15,9 +15,8 @@
     "build-cjs": "esbuild src/*.ts --format=cjs --keep-names --tsconfig=tsconfig.build.json --outdir=./dist --out-extension:.js=.cjs --sourcemap",
     "build-esm": "esbuild src/*.ts --format=esm --metafile=dist/meta.json --keep-names --tsconfig=tsconfig.build.json --outdir=./dist --sourcemap && tsc --emitDeclarationOnly --project tsconfig.build.json --outDir dist",
     "build-esm:min": "esbuild ./src/*.ts --format=esm --keep-names --bundle --tsconfig=tsconfig.build.json --minify --out-extension:.js=.min.js --outdir=./dist --sourcemap",
-    "build-example": "mkdir -p ./public && rm -rf ./public/* && NODE_ENV=development vite --mode staging --base=\"/{{repo-name}}\" build",
+    "build-example": "mkdir -p ./public && rm -rf ./public/* && NODE_ENV=development vite --mode staging --base=\"/image-editor\" build",
     "build": "mkdir -p ./dist && rm -rf ./dist/* && npm run build-cjs && npm run build-esm && npm run build-esm:min && npm run build-css && npm run build-css:min",
-    "build-cli": "esbuild ./bin/cli.ts > ./bin/cli.js",
     "start": "vite",
     "toc": "markdown-toc --maxdepth 3 -i README.md",
     "preversion": "npm run lint && stylelint src/*.css",
@@ -45,7 +44,6 @@
     "@substrate-system/web-component": "^0.0.56"
   },
   "devDependencies": {
-    "@inquirer/prompts": "^8.3.0",
     "@substrate-system/debug": "^0.9.60",
     "@substrate-system/dom": "^0.1.13",
     "@substrate-system/tapout": "^0.0.37",
@@ -57,8 +55,6 @@
     "esbuild": "^0.28.0",
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
-    "globby": "^16.1.0",
-    "handlebars": "^4.7.8",
     "lightningcss": "^1.30.2",
     "lightningcss-cli": "^1.30.2",
     "markdown-toc": "^1.2.0",
@@ -67,8 +63,7 @@
     "tap-spec": "^5.0.0",
     "typedoc": "^0.28.1",
     "typescript": "^6.0.2",
-    "vite": "^8.0.5",
-    "yargs": "^18.0.0"
+    "vite": "^8.0.5"
   },
   "author": "nichoth <nichoth@nichoth.com> (https://nichoth.com)",
   "license": "SEE LICENSE IN LICENSE"
