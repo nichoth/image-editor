@@ -1,9 +1,12 @@
 # Architecture inventory
 
 This inventory describes the current runtime in this repository. The
-authoritative sources are [the component implementation](../../src/index.ts),
-[the stylesheet](../../src/index.css), [the package manifest](../../package.json),
-and [the browser example](../../example/index.ts).
+authoritative sources are:
+
+- [The component implementation](../../src/index.ts)
+- [The stylesheet](../../src/index.css)
+- [The package manifest](../../package.json)
+- [The browser example](../../example/index.ts)
 
 The repository currently contains a vanilla custom element scaffold. The
 image-editing behaviour described in `tasks/` and `specs/` is not part of the
@@ -11,11 +14,12 @@ runtime inventory until it is implemented.
 
 ## Categories
 
-| Category | Scope |
-| --- | --- |
-| [Runtime component](runtime-component.md) | Element, lifecycle, DOM, and host contract |
-| [Runtime state](runtime-state.md) | DOM-backed and private state; no persistence |
-| [Distribution](distribution.md) | Build outputs, package exports, and consumers |
+- [Runtime component](runtime-component.md): element, lifecycle, DOM, and
+  host contract.
+- [Runtime state](runtime-state.md): DOM-backed and private state; no
+  persistence.
+- [Distribution](distribution.md): build outputs, package exports, and
+  consumers.
 
 ## Related decisions
 

@@ -1,14 +1,21 @@
 # Runtime component
 
-Authoritative sources are [the element class](../../src/index.ts), [its
-stylesheet](../../src/index.css), [the browser example](../../example/index.ts),
-and [the base-class decision](../adr/ADR-001-web-component-base-class.md).
+Authoritative sources are:
+
+- [The element class](../../src/index.ts)
+- [The stylesheet](../../src/index.css)
+- [The browser example](../../example/index.ts)
+- [The base-class decision](../adr/ADR-001-web-component-base-class.md)
 
 ## Component map
 
-| Component | Owner | Entry point | Contract |
-| --- | --- | --- | --- |
-| `image-editor` | `Example` in `src/index.ts` | Import `src/index.ts` or the package root | A self-registering custom element backed by `WebComponent.create('image-editor')` |
+The runtime component is:
+
+- **Tag:** `image-editor`
+- **Owner:** `Example` in `src/index.ts`
+- **Entry point:** Import `src/index.ts` or the package root.
+- **Contract:** A self-registering custom element backed by
+  `WebComponent.create('image-editor')`.
 
 `Example` is exported for consumers that need its static event helper or
 TypeScript type. The tag name is also registered in

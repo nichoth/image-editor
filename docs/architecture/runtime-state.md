@@ -1,17 +1,23 @@
 # Runtime state
 
-Authoritative sources are [the component implementation](../../src/index.ts),
-[the package manifest](../../package.json), and [the base-class attribute
-decision](../adr/ADR-004-attributes-as-state.md).
+Authoritative sources are:
+
+- [The component implementation](../../src/index.ts)
+- [The package manifest](../../package.json)
+- [The base-class attribute decision](../adr/ADR-004-attributes-as-state.md)
 
 ## State inventory
 
-| State | Shape | Owner | Lifetime | Persistence |
-| --- | --- | --- | --- | --- |
-| `example` | `string \| null` reflected attribute/property | `Example` and the host markup | While the element exists | None |
-| Authored children | `string[]` of serialized `outerHTML` | Private `Example.#slotted` field | From first connection until the element instance is discarded | None |
-| Child-list observer | `MutationObserver \| null` | Private `Example.#observer` field | Connected lifetime only | None |
-| Rendered content | Light-DOM nodes under `image-editor` | The element | Replaced by `render()` | None |
+- **`example`:** A `string | null` reflected attribute and property owned by
+  `Example` and host markup. It lasts while the element exists and is not
+  persisted.
+- **Authored children:** A `string[]` of serialized `outerHTML` values held by
+  the private `Example.#slotted` field. It lasts for the element instance and
+  is not persisted.
+- **Child-list observer:** A `MutationObserver | null` held by the private
+  `Example.#observer` field. It exists only while the element is connected.
+- **Rendered content:** Light-DOM nodes under `image-editor`, owned by the
+  element and replaced by `render()`. It is not persisted.
 
 There are no KV, database, object-store, cache, or server-side state writes
 in the current runtime. The package is a client-side custom element and has

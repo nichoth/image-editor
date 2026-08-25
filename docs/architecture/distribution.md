@@ -1,8 +1,11 @@
 # Distribution
 
-Authoritative sources are [the package manifest](../../package.json), [the
-build configuration](../../tsconfig.build.json), [the source entry point](../../src/index.ts),
-and [the distribution decision](../adr/ADR-007-dual-format-distribution.md).
+Authoritative sources are:
+
+- [The package manifest](../../package.json)
+- [The build configuration](../../tsconfig.build.json)
+- [The source entry point](../../src/index.ts)
+- [The distribution decision](../adr/ADR-007-dual-format-distribution.md)
 
 ## Package contract
 
