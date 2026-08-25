@@ -6,6 +6,48 @@ image-editor {
 
 .image-editor-container {
     position: relative;
+    outline-color: var(--image-editor-outline-color);
+    outline-style: var(--image-editor-outline-style);
+    outline-width: var(--image-editor-outline-width);
+}
+
+.image-editor-handle {
+    position: absolute;
+    z-index: 1;
+    width: var(--image-editor-handle-size);
+    height: var(--image-editor-handle-size);
+    background: var(--image-editor-handle-bg);
+    border: var(--image-editor-handle-border-width) solid
+        var(--image-editor-handle-border);
+    box-sizing: border-box;
+    transform: translate(-50%, -50%);
+}
+
+.image-editor-handle.top-left {
+    top: 0;
+    left: 0;
+    cursor: nwse-resize;
+}
+
+.image-editor-handle.top-right {
+    top: 0;
+    right: 0;
+    cursor: nesw-resize;
+    transform: translate(50%, -50%);
+}
+
+.image-editor-handle.bottom-left {
+    bottom: 0;
+    left: 0;
+    cursor: nesw-resize;
+    transform: translate(-50%, 50%);
+}
+
+.image-editor-handle.bottom-right {
+    right: 0;
+    bottom: 0;
+    cursor: nwse-resize;
+    transform: translate(50%, 50%);
 }
 
 /**

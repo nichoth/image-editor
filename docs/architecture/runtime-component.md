@@ -32,11 +32,18 @@ With an image, rendering produces:
 ```text
 image-editor
 └── div.image-editor-container
-    └── img     the first authored image
+    ├── img     the first authored image
+    ├── span.image-editor-handle.top-left
+    ├── span.image-editor-handle.top-right
+    ├── span.image-editor-handle.bottom-left
+    └── span.image-editor-handle.bottom-right
 ```
 
-The container has `position: relative` for future overlay controls. With no
-image, the element has no rendered children.
+The container has `position: relative` and an always-visible dashed outline.
+Each handle is absolutely positioned at a container corner. Diagonal cursor
+values communicate the resize direction, while CSS custom properties control
+the handle and outline appearance. With no image, the element has no rendered
+children.
 
 ## DOM and styling boundaries
 

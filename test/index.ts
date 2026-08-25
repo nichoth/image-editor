@@ -17,7 +17,7 @@ test('wraps the first child image in a positioned container', t => {
     t.equal(container?.className, 'image-editor-container')
     t.equal(image?.getAttribute('src'), 'image.jpg')
     t.equal(image?.getAttribute('width'), '320')
-    t.equal(container?.children.length, 1)
+    t.equal(container?.children.length, 5)
 })
 
 test('renders nothing and warns when no child image exists', t => {
@@ -27,4 +27,21 @@ test('renders nothing and warns when no child image exists', t => {
 
     t.equal(el?.innerHTML, '')
     t.ok(el, 'should find an element')
+})
+
+test('renders four corner resize handles', t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const handles = document.querySelectorAll('.image-editor-handle')
+    const corners = Array.from(handles).map(handle => handle.className)
+
+    t.equal(handles.length, 4, 'should render one handle for each corner')
+    t.ok(corners.includes('image-editor-handle top-left'))
+    t.ok(corners.includes('image-editor-handle top-right'))
+    t.ok(corners.includes('image-editor-handle bottom-left'))
+    t.ok(corners.includes('image-editor-handle bottom-right'))
 })
