@@ -217,7 +217,7 @@ test('starts a pointer resize and captures the pointer', t => {
     t.ok(didStart, 'should emit resize-start')
 })
 
-test('resizes proportionally and emits a throttled resize event', async t => {
+test('updates dimensions and emits resize only when the drag ends', async t => {
     document.body.innerHTML = `
         <image-editor>
             <img src="image.jpg" width="320" height="240" alt="A test">
@@ -248,13 +248,67 @@ test('resizes proportionally and emits a throttled resize event', async t => {
         pointerId: 8
     }))
 
+    t.equal(resizeEvents.length, 0)
     await new Promise(resolve => requestAnimationFrame(resolve))
 
     t.equal(image.style.width, '360px')
     t.equal(image.style.height, '270px')
+    t.equal(resizeEvents.length, 0)
+
+    const originalGetContext = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = (() => null) as unknown as
+        typeof HTMLCanvasElement.prototype.getContext
+    handle.dispatchEvent(new PointerEvent('pointerup', {
+        bubbles: true,
+        clientX: 360,
+        clientY: 270,
+        pointerId: 8
+    }))
+    HTMLCanvasElement.prototype.getContext = originalGetContext
+
     t.equal(resizeEvents.length, 1)
     t.equal(resizeEvents[0]?.detail.width, 360)
     t.equal(resizeEvents[0]?.detail.height, 270)
+})
+
+test('does not emit resize when the pointer is released without dragging', t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const handle = el?.querySelector('.bottom-right') as HTMLElement
+    const resizeEvents:Array<CustomEvent<{
+        width:number
+        height:number
+    }>> = []
+    el?.addEventListener('image-editor:resize', event => {
+        resizeEvents.push(event as CustomEvent<{
+            width:number
+            height:number
+        }>)
+    })
+
+    handle.dispatchEvent(new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientX: 320,
+        clientY: 240,
+        pointerId: 15
+    }))
+    const originalGetContext = HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.getContext = (() => null) as unknown as
+        typeof HTMLCanvasElement.prototype.getContext
+    handle.dispatchEvent(new PointerEvent('pointerup', {
+        bubbles: true,
+        clientX: 320,
+        clientY: 240,
+        pointerId: 15
+    }))
+    HTMLCanvasElement.prototype.getContext = originalGetContext
+
+    t.equal(resizeEvents.length, 0)
 })
 
 test('free-form mode resizes width and height independently', async t => {

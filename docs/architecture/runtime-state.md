@@ -17,8 +17,7 @@ Authoritative sources are:
   buttons.
 - **Resize interaction:** Private pointer state stores the active corner,
   pointer identifier, starting pointer position, starting dimensions, the
-  resize mode, and handle. A pending animation-frame identifier coalesces
-  resize events.
+  resize mode, handle, and latest dimensions produced by pointer movement.
 - **Keyboard resize interaction:** Private keyboard state stores the active
   corner, captured resize mode, starting dimensions and inline styles, the
   accumulated keyboard delta, final dimensions, and handle.
@@ -48,8 +47,8 @@ There are no server-side state writes. This is a client-side custom element.
 - Pointermove computes proportional dimensions from the initial image size,
   unless the captured resize mode is free-form, in which case each axis is
   computed independently. Both modes apply the configured minimum dimensions.
-  It writes dimensions to the image's inline styles and emits a
-  frame-coalesced resize event.
+  It writes dimensions to the image's inline styles. A dragged pointerup emits
+  one resize event with the final dimensions.
 - Pointerup, pointercancel, or disconnection clears the active resize state.
   A completed pointerup emits resize-end after canvas.toBlob() returns a
   non-null blob, and closes any bitmap used for drawing.

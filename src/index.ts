@@ -86,49 +86,47 @@ export class ImageEditor extends withWildcards(
         this.setAttribute('min-height', String(value))
     }
 
-    #image:HTMLImageElement|null = null
-    #altObserver:MutationObserver|null = null
-    #resizeFrame:number|null = null
-    #resizeDimensions:{ width:number; height:number }|null = null
-    #resizeState:ResizeState|null = null
-    #keyboardResizeState:KeyboardResizeState|null = null
+    private _image:HTMLImageElement|null = null
+    private _altObserver:MutationObserver|null = null
+    private _resizeDimensions:{ width:number; height:number }|null = null
+    private _resizeState:ResizeState|null = null
+    private _keyboardResizeState:KeyboardResizeState|null = null
 
     connectedCallback () {
-        if (!this.#image) this.#image = this.querySelector('img')
-        if (!this.#image) debug('warning: no child image found')
+        if (!this._image) this._image = this.querySelector('img')
+        if (!this._image) debug('warning: no child image found')
         super.connectedCallback()
         this.observeAltAttribute()
     }
 
     render () {
-        if (!this.#image) {
+        if (!this._image) {
             this.innerHTML = ''
             return
         }
         const container = document.createElement('div')
         container.className = 'image-editor-container'
-        container.append(this.#image)
-        container.append(createEditOverlay(this, this.#image))
+        container.append(this._image)
+        container.append(createEditOverlay(this, this._image))
         container.append(...createResizeHandles(this))
         this.replaceChildren(container)
     }
 
     disconnectedCallback () {
-        this.#altObserver?.disconnect()
-        this.#altObserver = null
-        this.cancelResizeFrame()
-        this.#resizeState = null
-        this.#keyboardResizeState = null
+        this._altObserver?.disconnect()
+        this._altObserver = null
+        this._resizeState = null
+        this._keyboardResizeState = null
     }
 
     handlePointerDown = (event:PointerEvent):void => {
-        if (!this.#image) return
+        if (!this._image) return
         const handle = event.currentTarget as HTMLElement
         const corner = getResizeCorner(handle)
         if (!corner) return
-        const dimensions = getImageDimensions(this.#image)
+        const dimensions = getImageDimensions(this._image)
 
-        this.#resizeState = {
+        this._resizeState = {
             corner,
             freeForm: this.freeForm,
             start: dimensions,
@@ -149,12 +147,12 @@ export class ImageEditor extends withWildcards(
     }
 
     handleKeyDown = (event:KeyboardEvent):void => {
-        if (!this.#image) return
+        if (!this._image) return
         const handle = event.currentTarget as HTMLElement
         const corner = getResizeCorner(handle)
         if (!corner) return
         if (event.key === 'Escape') {
-            if (this.#keyboardResizeState?.handle !== handle) return
+            if (this._keyboardResizeState?.handle !== handle) return
             event.preventDefault()
             this.restoreKeyboardResize()
             return
@@ -163,13 +161,13 @@ export class ImageEditor extends withWildcards(
 
         event.preventDefault()
         const delta = getKeyboardResizeDelta(event.key, event.shiftKey)
-        const current = this.#keyboardResizeState
+        const current = this._keyboardResizeState
         const state = current?.handle === handle
             ? current
-            : createKeyboardResizeState(this.#image, this.freeForm,
+            : createKeyboardResizeState(this._image, this.freeForm,
                 corner, handle)
         if (!current || current.handle !== handle) {
-            this.#keyboardResizeState = state
+            this._keyboardResizeState = state
             this.emit('resize-start')
         }
 
@@ -189,14 +187,14 @@ export class ImageEditor extends withWildcards(
             startX: 0,
             startY: 0
         })
-        this.#keyboardResizeState = { ...nextState, dimensions }
-        this.#image.style.width = `${dimensions.width}px`
-        this.#image.style.height = `${dimensions.height}px`
+        this._keyboardResizeState = { ...nextState, dimensions }
+        this._image.style.width = `${dimensions.width}px`
+        this._image.style.height = `${dimensions.height}px`
         this.emit('resize', { detail: dimensions })
     }
 
     handleKeyUp = async (event:KeyboardEvent):Promise<void> => {
-        const state = this.#keyboardResizeState
+        const state = this._keyboardResizeState
         if (!state || state.handle !== event.currentTarget ||
             !isKeyboardResizeKey(event.key)) {
             return
@@ -205,12 +203,12 @@ export class ImageEditor extends withWildcards(
     }
 
     handlePointerMove = (event:PointerEvent):void => {
-        const state = this.#resizeState
-        if (!state || state.pointerId !== event.pointerId || !this.#image) {
+        const state = this._resizeState
+        if (!state || state.pointerId !== event.pointerId || !this._image) {
             return
         }
 
-        this.#resizeDimensions = getResizeDimensions({
+        this._resizeDimensions = getResizeDimensions({
             corner: state.corner,
             start: state.start,
             freeForm: state.freeForm,
@@ -221,74 +219,69 @@ export class ImageEditor extends withWildcards(
             startX: state.startX,
             startY: state.startY
         })
-        this.#image.style.width = `${this.#resizeDimensions.width}px`
-        this.#image.style.height = `${this.#resizeDimensions.height}px`
-        if (this.#resizeFrame === null) {
-            this.#resizeFrame = requestAnimationFrame(() => {
-                this.#resizeFrame = null
-                this.emit('resize', { detail: this.#resizeDimensions })
+        this._image.style.width = `${this._resizeDimensions.width}px`
+        this._image.style.height = `${this._resizeDimensions.height}px`
+    }
+
+    handlePointerUp = async (event:PointerEvent):Promise<void> => {
+        const state = this._resizeState
+        if (!state || state.pointerId !== event.pointerId) return
+        if (state.handle.hasPointerCapture(event.pointerId)) {
+            state.handle.releasePointerCapture(event.pointerId)
+        }
+        const dimensions = this._resizeDimensions
+        const finalDimensions = dimensions ?? state.start
+        this._resizeState = null
+        this._resizeDimensions = null
+        const blob = await createResizeBlob(this._image, {
+            ...finalDimensions
+        })
+        if (!dimensions) return
+        if (blob) {
+            this.emit('resize', {
+                detail: {
+                    ...dimensions,
+                    blob
+                }
+            })
+        } else {
+            this.emit('resize', {
+                detail: dimensions
             })
         }
     }
 
-    handlePointerUp = async (event:PointerEvent):Promise<void> => {
-        const state = this.#resizeState
-        if (!state || state.pointerId !== event.pointerId) return
-        this.cancelResizeFrame()
-        if (state.handle.hasPointerCapture(event.pointerId)) {
-            state.handle.releasePointerCapture(event.pointerId)
-        }
-        const dimensions = this.#resizeDimensions ?? state.start
-        this.#resizeState = null
-        this.#resizeDimensions = null
-        const blob = await createResizeBlob(this.#image, dimensions)
-        if (!blob) return
-        this.emit<ResizeBlobDetail>('resize-end', {
-            detail: {
-                blob,
-                ...dimensions
-            }
-        })
-    }
-
     handleEdit = (event:MouseEvent):void => {
         event.preventDefault()
-        if (!this.#image) return
-        this.emit<EditDetail>('edit', { detail: { img: this.#image } })
+        if (!this._image) return
+        this.emit<EditDetail>('edit', { detail: { img: this._image } })
     }
 
     handleAlt = (event:MouseEvent):void => {
         event.preventDefault()
-        if (!this.#image) return
+        if (!this._image) return
         this.emit<AltDetail>('alt', {
             detail: {
-                alt: getImageAlt(this.#image),
-                img: this.#image
+                alt: getImageAlt(this._image),
+                img: this._image
             }
         })
     }
 
-    private cancelResizeFrame ():void {
-        if (this.#resizeFrame !== null) {
-            cancelAnimationFrame(this.#resizeFrame)
-            this.#resizeFrame = null
-        }
-    }
-
     private restoreKeyboardResize ():void {
-        const state = this.#keyboardResizeState
-        if (!state || !this.#image) return
-        this.#image.style.width = state.startStyle.width
-        this.#image.style.height = state.startStyle.height
-        this.#keyboardResizeState = null
+        const state = this._keyboardResizeState
+        if (!state || !this._image) return
+        this._image.style.width = state.startStyle.width
+        this._image.style.height = state.startStyle.height
+        this._keyboardResizeState = null
     }
 
     private async finishKeyboardResize (
         state:KeyboardResizeState
     ):Promise<void> {
-        if (this.#keyboardResizeState !== state || !this.#image) return
-        this.#keyboardResizeState = null
-        const blob = await createResizeBlob(this.#image, state.dimensions)
+        if (this._keyboardResizeState !== state || !this._image) return
+        this._keyboardResizeState = null
+        const blob = await createResizeBlob(this._image, state.dimensions)
         if (!blob) return
         this.emit<ResizeBlobDetail>('resize-end', {
             detail: {
@@ -299,15 +292,15 @@ export class ImageEditor extends withWildcards(
     }
 
     private observeAltAttribute ():void {
-        this.#altObserver?.disconnect()
-        if (!this.#image) return
-        const image = this.#image
+        this._altObserver?.disconnect()
+        if (!this._image) return
+        const image = this._image
         const badge = this.querySelector<HTMLButtonElement>('button.alt')
         if (!badge) return
-        this.#altObserver = new MutationObserver(() => {
+        this._altObserver = new MutationObserver(() => {
             updateAltBadge(badge, image)
         })
-        this.#altObserver.observe(image, {
+        this._altObserver.observe(image, {
             attributes: true,
             attributeFilter: ['alt']
         })

@@ -58,10 +58,11 @@ rendered dimensions and pointer position, captures the pointer, and emits the
 namespaced `image-editor:resize-start` event. Pointer movement keeps the
 image's aspect ratio by default, or changes width and height independently
 when the `free-form` attribute is present. It updates inline `width` and
-`height`, and coalesces the namespaced `image-editor:resize` event to one
-emission per animation frame. The `freeForm` boolean property reflects the
-same `free-form` attribute, so property assignment and attribute changes both
-select the mode used by the next drag.
+`height`. Pointerup emits one `resize` event with the dropped dimensions when
+the pointer moved, before asynchronous blob generation begins. The
+`freeForm` boolean property reflects the same `free-form` attribute, so
+property assignment and attribute changes both select the mode used by the
+next drag.
 The `min-width` and `min-height` attributes define positive pixel minimums,
 defaulting to 50px each. They are exposed as numeric `minWidth` and
 `minHeight` properties backed by the attributes. Constrained resizing clamps
@@ -92,7 +93,9 @@ FOUCE guard.
 ## Events
 
 The base class supplies namespaced event helpers. US-004 adds
-`image-editor:resize-start` and `image-editor:resize`. US-005 adds
+`image-editor:resize-start` and `image-editor:resize`. The resize event is
+emitted once on pointerup after a drag and uses `{ width, height }` detail.
+Pointer movement only updates the inline image dimensions. US-005 adds
 `image-editor:resize-end` with `{ blob, width, height }` detail. Resize event
 dimensions are CSS pixels, and the blob canvas uses those same pixel
 dimensions. US-006 adds cancelable `image-editor:edit` with `{ img }`, where

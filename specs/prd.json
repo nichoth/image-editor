@@ -64,7 +64,8 @@
         "Uses setPointerCapture so drag continues even if cursor leaves the handle",
         "During drag, image dimensions update in real time via inline CSS (style.width, style.height)",
         "Component emits image-editor:resize-start on pointerdown",
-        "Component emits image-editor:resize during drag with { width, height } detail, throttled via requestAnimationFrame",
+        "Pointer movement does not emit image-editor:resize",
+        "A dragged pointerup emits one image-editor:resize event",
         "Aspect ratio is computed from the image's initial dimensions and preserved during drag",
         "Typecheck passes",
         "Verify in browser using dev-browser skill"
