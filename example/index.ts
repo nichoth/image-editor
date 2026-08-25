@@ -1,5 +1,4 @@
-import '../src/index.css'
-import '../src/index.js'
+import { ImageEditor } from '../src/index.js'
 
 if (import.meta.env.DEV || import.meta.env.MODE !== 'production') {
     localStorage.setItem('DEBUG', 'image-editor')
@@ -9,22 +8,16 @@ if (import.meta.env.DEV || import.meta.env.MODE !== 'production') {
 
 // `document.body.innerHTML +=` would serialize and re-parse the whole
 // body, destroying and recreating every element already on the page.
-// Custom elements would lose their state and re-capture their own
-// rendered output as if it were authored content.
 document.body.insertAdjacentHTML(
     'beforeend',
-    '<image-editor><img src="./example.jpg" width="320" height="240"' +
-    ' alt="Example image"></image-editor>'
+    `<${ImageEditor.TAG}>
+        <img src="/cinnamon-roll.jpg" width="320" alt="testing"></img>
+    </${ImageEditor.TAG}>
+    `
 )
 
 /**
- * Page level FOUCE guard -- reveal the page once every component is
- * defined, so they appear together instead of one at a time.
- *
- * The timeout is not optional. Without it, a component that fails to
- * define leaves the page blank forever.
- *
- * @see docs/adr/ADR-006-fouce-mitigation.md
+ * Page level FOUCE -- reveal the page once every component is defined.
  */
 await Promise.race([
     Promise.allSettled([

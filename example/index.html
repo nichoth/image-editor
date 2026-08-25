@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Example</title>
 
+    <link rel="stylesheet" href="/style.css">
+
     <!--
       Page level FOUCE guard. Inline, not linked, because it has to
       apply before the first paint. See docs/adr/ADR-006-fouce-mitigation.md
@@ -21,10 +23,6 @@
     </noscript>
 </head>
 <body>
-    <image-editor>
-        <img src="./example.jpg" width="320" height="240"
-            alt="Example image">
-    </image-editor>
     <script type="module" src="./index.ts"></script>
   </body>
 </html>
