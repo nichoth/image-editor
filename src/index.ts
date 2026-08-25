@@ -1,6 +1,5 @@
-// pattern: Imperative Shell
-
 import { WebComponent } from '@substrate-system/web-component'
+import { withWildcards } from '@substrate-system/web-component/wildcard'
 import Debug from '@substrate-system/debug'
 import {
     getKeyboardResizeDelta,
@@ -57,7 +56,9 @@ type AltDetail = {
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 const EDIT_ICON_PATH = 'M4 20h4L18.5 9.5a2.1 2.1 0 0 0 -3-3L5 17v3z'
 
-export class ImageEditor extends WebComponent.create('image-editor') {
+export class ImageEditor extends withWildcards(
+    WebComponent.create('image-editor')
+) {
     static reflectedBooleanAttributes = ['free-form']
     static reflectedStringAttributes = ['min-width', 'min-height']
 

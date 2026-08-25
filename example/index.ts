@@ -43,3 +43,7 @@ editor.on('edit', ev => {
 editor.on('alt', (ev) => {
     debug('alt event...', ev)
 })
+
+editor.on('*', ev => {
+    debug('***', ev)
+})
