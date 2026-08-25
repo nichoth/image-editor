@@ -1,4 +1,4 @@
-@import './_vars.css';
+@import url('./_vars.css');
 
 image-editor {
     display: inline-block;

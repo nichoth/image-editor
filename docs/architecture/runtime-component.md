@@ -41,8 +41,10 @@ image, the element has no rendered children.
 ## DOM and styling boundaries
 
 The component renders in light DOM and does not attach a shadow root.
-`src/index.css` imports global image-editor custom-property defaults and hides
-the undefined element with `:not(:defined)`. The example uses a page-level
+`src/index.css` imports the global image-editor custom-property defaults from
+`src/_vars.css` and hides the undefined element with `:not(:defined)`. The
+theme contract currently includes handle size, handle colors, outline
+appearance, button size, and overlay padding. The example uses a page-level
 FOUCE guard.
 
 ## Events

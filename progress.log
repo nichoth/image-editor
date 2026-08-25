@@ -19,3 +19,18 @@
   - Browser tests run through `npm test`; direct binaries are not on the
     shell PATH outside npm scripts.
 ---
+
+## 2026-08-25 02:00 - US-002
+- Verified the existing global theme contract and documented its scope.
+- `src/_vars.css` defines all requested `--image-editor-*` properties with
+  sensible defaults, and `src/index.css` imports the file without bypassing
+  the contract.
+- Files changed: `docs/architecture/runtime-component.md`,
+  `src/index.css`, `specs/prd.json`, `progress.log`.
+- **Learnings for future iterations:**
+  - Theme defaults live in the global `:root` scope and are imported by the
+    component stylesheet.
+  - This configuration-only story needs no additional browser behavior test;
+    typecheck, lint, and the existing browser suite provide the relevant
+    regression coverage.
+---
