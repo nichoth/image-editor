@@ -63,11 +63,12 @@ The component renders in light DOM by assigning `innerHTML`; it does not
 attach a shadow root. Authored children are preserved as markup in the first
 render, but later renders use the captured strings rather than live nodes.
 
-`src/index.css` hides the undefined element with `:not(:defined)` and applies
-the current component background. The example adds a page-level FOUCE guard,
-waits for `customElements.whenDefined('image-editor')`, and reveals the page
-after definition or a two-second timeout. A `noscript` fallback reveals the
-page when JavaScript is disabled.
+`src/index.css` defines the global `--color-red` palette entry, uses it for
+the component background, and hides the undefined element with
+`:not(:defined)`. The example adds a page-level FOUCE guard, waits for
+`customElements.whenDefined('image-editor')`, and reveals the page after
+definition or a two-second timeout. A `noscript` fallback reveals the page
+when JavaScript is disabled.
 
 ## Events
 

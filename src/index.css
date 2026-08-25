@@ -1,10 +1,14 @@
+:root {
+    --color-red: red;
+}
+
+image-editor {
+    background-color: var(--color-red);
+}
+
 /**
  * Don't show until JavaScript is instantiated
  */
 image-editor:not(:defined) {
-	display: none;
-}
-
-image-editor {
-    background-color: red;
+    display: none;
 }

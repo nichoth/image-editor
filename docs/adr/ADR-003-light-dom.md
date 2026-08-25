@@ -21,9 +21,11 @@ Ship styles as a plain stylesheet (`src/index.css`, exported as
 
 ```css
 example-component {
-    background-color: red;
+    background-color: var(--color-red);
 }
 ```
+
+Define colors in the global palette and reference them through CSS variables.
 
 ## Consequences
 
@@ -37,4 +39,4 @@ hook but does not enforce that scoping.
 Consumers must import the stylesheet separately from the JS. Rendering
 via `innerHTML` also means any light-DOM children the consumer wrote are
 destroyed on re-render unless the component reads them first, which is
-what the template's constructor does.
+what this component's `connectedCallback()` does.

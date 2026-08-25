@@ -14,18 +14,20 @@ every merge produce a conflict, over files nobody reads.
 
 ## Decision
 
-Build to `dist/` in four variants: CJS (`.cjs`), ESM (`.js`) with
-`.d.ts` declarations, minified bundled ESM (`.min.js`), and compiled CSS
-(`index.css`, `index.min.css`). `esbuild` does the JS,
-`tsc --emitDeclarationOnly` the types, `lightningcss` the CSS.
+Build JavaScript in four forms: CJS (`.cjs`), minified CJS (`.min.cjs`),
+ESM (`.js`) with `.d.ts` declarations, and bundled minified ESM
+(`.min.js`). Compile CSS as `index.css` and `index.min.css`. `esbuild`
+builds the JavaScript, `tsc --emitDeclarationOnly` emits declarations,
+and `lightningcss` builds the CSS.
 
-Route consumers with the `exports` field rather than `main`, so the
-right format is picked automatically. `./css` and `./min/*` are
-subpath exports.
+Route consumers with the `exports` field. The package root selects ESM or
+CJS, and `./css`, `./min/css`, `./min/*`, and `./*` expose the other
+artifacts. Every advertised JavaScript format has a matching build step.
 
-`dist` and `*.js` are in `.gitignore` but not in `.npmignore`; `files`
-limits the published tarball to `./dist/*`. Compiled code reaches npm
-and never reaches git.
+`dist` is in `.gitignore` and explicitly included by `.npmignore`. The
+`files` field limits published build artifacts to `./dist/*`. npm also
+includes its standard metadata files. Compiled code reaches npm and does
+not enter git.
 
 The npm lifecycle hooks enforce the sequence:
 
@@ -36,13 +38,12 @@ The npm lifecycle hooks enforce the sequence:
 
 ## Consequences
 
-`npm version` alone performs a full release: lint, document, tag, push,
-build, publish. There is no separate release script to remember, and
-publishing unlinted or unbuilt code takes deliberate effort.
+`npm version` performs a full release: lint, document, tag, push, build,
+and publish. There is no separate release script to remember. The package
+manifest does not mark the package private, so the publish hook can run.
 
 A fresh clone has no `dist`, so anything reading from it fails until
 `npm run build` runs. Tests avoid this by importing from `src`.
 
-The four build variants are four chances to misconfigure `exports`. A
-broken subpath only shows up when a consumer resolves it, not at build
-time.
+The four JavaScript forms and two CSS forms can drift from `exports`. The
+build must produce every target that the manifest advertises.

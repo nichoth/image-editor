@@ -9,8 +9,8 @@ then re-implements the same three things: namespaced event plumbing,
 `querySelector` shortcuts, and attribute-to-property reflection. Written
 by hand, each component drifts from the others.
 
-`@substrate-system/web-component` is a dependency of this template (not a
-dev dependency) and supplies those as a base class.
+`@substrate-system/web-component` is a runtime dependency of this component
+and supplies those features through a base class.
 
 ## Decision
 
@@ -43,8 +43,8 @@ Tag names are kebab-case, per the custom element naming rules.
 ## Consequences
 
 Event helpers ([ADR-005](ADR-005-namespaced-events.md)), `qs`/`qsa`, and
-reflected attributes ([ADR-004](ADR-004-attributes-as-state.md)) come for
-free and behave the same in every component built from this template.
+reflected attributes ([ADR-004](ADR-004-attributes-as-state.md)) come from
+the same base class and share its behaviour.
 
 The component gains a runtime dependency. This is deliberate:
 `@substrate-system/web-component` sits in `dependencies`, so consumers

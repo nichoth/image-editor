@@ -6,8 +6,8 @@
 
 Components communicate outward by dispatching events. Plain names like
 `change` or `close` collide with native events and with other
-components' events once several are on the same page, and a listener
-cannot tell which component a bare `change` came from.
+components' events once several are on the same page. A broad listener can
+therefore handle an unrelated event with the same name.
 
 ## Decision
 
@@ -41,10 +41,14 @@ them extends `WildcardComponent` or wraps its base with
 Event names are unambiguous on a page with many components, and a
 listener never has to guess the source.
 
-Consumers cannot listen for `'hello'`; they must use
-`Example.event('hello')` or the `on()` shorthand, which means importing
-the class. This is documented in the component's README rather than
-being discoverable from the markup.
+Consumers cannot listen for `'hello'`; the emitted name includes the tag.
+They can use `Example.event('hello')`, the `on()` shorthand, or the literal
+`'example-component:hello'`. The literal and `on()` forms do not require an
+import of the component class.
+
+The current component does not emit a component-specific event. This
+decision governs events added later; it does not define an event set by
+itself.
 
 Renaming a component's tag renames every event it emits. That is a
 breaking change for consumers even though no event name was edited.

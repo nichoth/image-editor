@@ -70,8 +70,8 @@ is why the timeout and the `noscript` fallback are mandatory. Omitting
 either turns a cosmetic problem into a blank page.
 
 The page-level pattern cannot ship with the component, since it belongs
-to the host document. The template demonstrates it in `example/` and the
-component's README has to tell consumers to adopt it.
+to the host document. This repository demonstrates it in `example/`, and
+the component's README tells consumers how to adopt it.
 
 Component-level `:not(:defined)` uses `display: none` here rather than
 `visibility: hidden`, so undefined elements take up no space. That

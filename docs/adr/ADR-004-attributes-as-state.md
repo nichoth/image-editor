@@ -20,7 +20,7 @@ static arrays rather than hand-writing `observedAttributes` and
 accessors:
 
 ```ts
-class Example extends WebComponent {
+class Example extends WebComponent.create('example-component') {
     static reflectedBooleanAttributes = ['disabled']
     static reflectedStringAttributes = ['type', 'name']
 
