@@ -30,6 +30,14 @@ type ResizeBlobDetail = {
     readonly height:number
 }
 
+type EditDetail = {
+    readonly img:HTMLImageElement
+}
+
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
+const EDIT_ICON_PATH =
+    'M4 20h4L18.5 9.5a2.1 2.1 0 0 0 -3-3L5 17v3z'
+
 export class ImageEditor extends WebComponent.create('image-editor') {
     #image:HTMLImageElement|null = null
     #resizeFrame:number|null = null
@@ -50,6 +58,7 @@ export class ImageEditor extends WebComponent.create('image-editor') {
         const container = document.createElement('div')
         container.className = 'image-editor-container'
         container.append(this.#image)
+        container.append(createEditOverlay(this))
         container.append(...createResizeHandles(this))
         this.replaceChildren(container)
     }
@@ -129,6 +138,12 @@ export class ImageEditor extends WebComponent.create('image-editor') {
         })
     }
 
+    handleEdit = (event:MouseEvent):void => {
+        event.preventDefault()
+        if (!this.#image) return
+        this.emit<EditDetail>('edit', { detail: { img: this.#image } })
+    }
+
     private cancelResizeFrame ():void {
         if (this.#resizeFrame !== null) {
             cancelAnimationFrame(this.#resizeFrame)
@@ -196,6 +211,31 @@ function createResizeHandles (editor:ImageEditor) {
         handle.addEventListener('pointercancel', editor.handlePointerUp)
         return handle
     })
+}
+
+function createEditOverlay (editor:ImageEditor):HTMLElement {
+    const overlay = document.createElement('div')
+    overlay.className = 'image-editor-overlay'
+
+    const controls = document.createElement('div')
+    controls.className = 'image-editor-controls'
+
+    const button = document.createElement('button')
+    button.type = 'button'
+    button.className = 'edit'
+    button.setAttribute('aria-label', 'Edit image')
+    button.addEventListener('click', editor.handleEdit)
+
+    const icon = document.createElementNS(SVG_NAMESPACE, 'svg')
+    icon.setAttribute('viewBox', '0 0 24 24')
+    icon.setAttribute('aria-hidden', 'true')
+    const path = document.createElementNS(SVG_NAMESPACE, 'path')
+    path.setAttribute('d', EDIT_ICON_PATH)
+    icon.append(path)
+    button.append(icon)
+    controls.append(button)
+    overlay.append(controls)
+    return overlay
 }
 
 function getResizeCorner (handle:HTMLElement):ResizeCorner|null {

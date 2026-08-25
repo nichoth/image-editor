@@ -7,5 +7,11 @@
     --image-editor-outline-width: 2px;
     --image-editor-outline-style: dashed;
     --image-editor-button-size: 32px;
+    --image-editor-button-bg: white;
+    --image-editor-button-color: black;
+    --image-editor-button-border: black;
+    --image-editor-button-border-width: 1px;
+    --image-editor-button-padding: 0;
+    --image-editor-button-icon-stroke-width: 2px;
     --image-editor-overlay-padding: 8px;
 }

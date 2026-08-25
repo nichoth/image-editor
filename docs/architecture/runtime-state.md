@@ -11,7 +11,7 @@ Authoritative sources are:
   private `ImageEditor.#image` field for the element instance.
 - **Rendered content:** Light-DOM nodes under `image-editor`, owned by the
   element and replaced by `render()`. A rendered image container also owns four
-  corner resize-handle elements.
+  corner resize-handle elements and an overlay containing the edit button.
 - **Resize interaction:** Private pointer state stores the active corner,
   pointer identifier, starting pointer position, starting dimensions, and
   handle. A pending animation-frame identifier coalesces resize events.
@@ -35,3 +35,6 @@ There are no server-side state writes. This is a client-side custom element.
 - Pointerup, pointercancel, or disconnection clears the active resize state.
   A completed pointerup emits resize-end after canvas.toBlob() returns a
   non-null blob, and closes any bitmap used for drawing.
+- Clicking the edit button prevents native button behavior and emits a
+  cancelable edit event with the captured image. The component does not create
+  an editing dialog.

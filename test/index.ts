@@ -17,7 +17,7 @@ test('wraps the first child image in a positioned container', t => {
     t.equal(container?.className, 'image-editor-container')
     t.equal(image?.getAttribute('src'), 'image.jpg')
     t.equal(image?.getAttribute('width'), '320')
-    t.equal(container?.children.length, 5)
+    t.equal(container?.children.length, 6)
 })
 
 test('renders nothing and warns when no child image exists', t => {
@@ -58,6 +58,43 @@ test('styles the outline and handles for corner resizing', t => {
 
     t.ok(cursors.includes('nwse-resize'))
     t.ok(cursors.includes('nesw-resize'))
+})
+
+test('renders an edit button with the pencil icon and emits edit', t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const image = el?.querySelector('img')
+    const button = el?.querySelector('button.edit') as HTMLButtonElement
+    const path = button?.querySelector('svg path')
+    let editImage:HTMLImageElement|null = null
+    let wasCancelable = false
+    let wasCanceled = false
+
+    el?.addEventListener('image-editor:edit', event => {
+        const customEvent = event as CustomEvent<{ img:HTMLImageElement }>
+        editImage = customEvent.detail.img
+        wasCancelable = customEvent.cancelable
+        customEvent.preventDefault()
+        wasCanceled = customEvent.defaultPrevented
+    })
+
+    t.ok(button, 'should render the edit button')
+    if (!button) return
+    button.click()
+
+    t.equal(button.type, 'button')
+    t.equal(button.getAttribute('aria-label'), 'Edit image')
+    t.equal(path?.getAttribute('d'),
+        'M4 20h4L18.5 9.5a2.1 2.1 0 0 0 -3-3L5 17v3z')
+    t.equal(editImage, image)
+    t.ok(wasCancelable, 'should allow consumers to cancel the event')
+    t.ok(wasCanceled, 'should respect preventDefault')
+    t.equal(el?.querySelector('dialog'), null)
 })
 
 test('starts a pointer resize and captures the pointer', t => {

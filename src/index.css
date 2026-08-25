@@ -6,9 +6,54 @@ image-editor {
 
 .image-editor-container {
     position: relative;
-    outline-color: var(--image-editor-outline-color);
-    outline-style: var(--image-editor-outline-style);
-    outline-width: var(--image-editor-outline-width);
+    outline: var(--image-editor-outline-width)
+        var(--image-editor-outline-style)
+        var(--image-editor-outline-color);
+}
+
+.image-editor-overlay {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    box-sizing: border-box;
+    padding: var(--image-editor-overlay-padding);
+    pointer-events: none;
+}
+
+.image-editor-overlay > * {
+    pointer-events: auto;
+}
+
+.image-editor-controls {
+    display: flex;
+    margin-left: auto;
+}
+
+.image-editor-overlay button.edit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--image-editor-button-size);
+    height: var(--image-editor-button-size);
+    padding: var(--image-editor-button-padding);
+    border: var(--image-editor-button-border-width) solid
+        var(--image-editor-button-border);
+    background: var(--image-editor-button-bg);
+    color: var(--image-editor-button-color);
+    cursor: pointer;
+}
+
+.image-editor-overlay button.edit svg {
+    width: var(--image-editor-button-size);
+    height: var(--image-editor-button-size);
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: var(--image-editor-button-icon-stroke-width);
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }
 
 .image-editor-handle {

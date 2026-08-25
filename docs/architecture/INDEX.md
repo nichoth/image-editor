@@ -8,9 +8,9 @@ authoritative sources are:
 - [The package manifest](../../package.json)
 - [The browser example](../../example/index.ts)
 
-The repository currently contains a vanilla custom element scaffold. The
-image-editing behaviour described in `tasks/` and `specs/` is not part of the
-runtime inventory until it is implemented.
+The repository contains a vanilla custom element with the image-editing
+behaviour implemented so far. Planned behaviour in `tasks/` and `specs/` is
+added to the runtime inventory as each task is completed.
 
 ## Categories
 

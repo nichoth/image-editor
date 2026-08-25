@@ -33,6 +33,9 @@ With an image, rendering produces:
 image-editor
 └── div.image-editor-container
     ├── img     the first authored image
+    ├── div.image-editor-overlay
+    │   └── div.image-editor-controls
+    │       └── button.edit > svg > path
     ├── span.image-editor-handle.top-left
     ├── span.image-editor-handle.top-right
     ├── span.image-editor-handle.bottom-left
@@ -43,7 +46,10 @@ The container has `position: relative` and an always-visible dashed outline.
 Each handle is absolutely positioned at a container corner. Diagonal cursor
 values communicate the resize direction in both the stylesheet and the
 rendered handle style, while CSS custom properties control the handle and
-outline appearance. With no image, the element has no rendered children.
+outline appearance. The overlay fills the container, uses flex layout with
+space between, and places the edit control on the right. The edit button uses
+the pencil path shared with `image-input` and has no built-in dialog behavior.
+With no image, the element has no rendered children.
 
 Each handle listens for pointer events. A pointerdown records the image's
 rendered dimensions and pointer position, captures the pointer, and emits the
@@ -71,5 +77,7 @@ The base class supplies namespaced event helpers. US-004 adds
 `image-editor:resize-start` and `image-editor:resize`. US-005 adds
 `image-editor:resize-end` with `{ blob, width, height }` detail. Resize event
 dimensions are CSS pixels, and the blob canvas uses those same pixel
-dimensions. Resize interaction is pointer-based and uses pointer capture
-when the browser has an active pointer.
+dimensions. US-006 adds cancelable `image-editor:edit` with `{ img }`, where
+`img` is the captured `HTMLImageElement`; consumers own any editing UI. Resize
+interaction is pointer-based and uses pointer capture when the browser has an
+active pointer.

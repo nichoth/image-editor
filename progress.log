@@ -88,3 +88,25 @@
   - Browser tests can replace canvas methods and restore them after asserting
     draw source, canvas dimensions, and blob output.
 ---
+
+## 2026-08-25 02:07 - US-006
+- Added a flex overlay with a right-aligned pencil edit button using the
+  published `image-input` SVG path.
+- Clicking the button prevents native button behavior and emits cancelable
+  `image-editor:edit` with the captured image in `detail.img`; no dialog is
+  created.
+- Added browser coverage for the rendered button, SVG path, event detail,
+  cancelability, and dialog absence.
+- Updated button theme variables, runtime architecture documentation, and the
+  PRD completion flag.
+- Files changed: `src/index.ts`, `src/index.css`, `src/_vars.css`,
+  `test/index.ts`, `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `specs/prd.json`, `progress.log`.
+- **Learnings for future iterations:**
+  - `WebComponent.emit()` provides the required namespaced,
+    bubbling, cancelable event contract by default.
+  - The image-input edit control uses the pencil path
+    `M4 20h4L18.5 9.5a2.1 2.1 0 0 0 -3-3L5 17v3z`.
+  - Adding an overlay changes the container child count, so DOM structure
+    assertions must be updated with the architecture contract.
+---
