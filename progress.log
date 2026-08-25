@@ -5,6 +5,8 @@
 - Corner affordances keep their cursor direction in the rendered handle style
   as well as the stylesheet, so the direction remains observable and stable
   during later pointer interaction work.
+- Pure resize calculations live in `src/resize-math.ts`; DOM and pointer
+  orchestration stays in `src/index.ts`.
 
 ## 2026-08-25 01:45 - US-001
 - Implemented `ImageEditor` to capture the first child image and render it in
@@ -52,4 +54,20 @@
     assertions should use observable DOM state.
   - The test server does not serve source CSS by URL, so stylesheet behavior
     is covered through the rendered component contract and build checks.
+---
+
+## 2026-08-25 03:00 - US-004
+- Implemented pointer-driven, aspect-ratio-locked corner resizing with
+  pointer capture, inline image dimensions, and rAF-throttled resize events.
+- Added focused browser tests covering resize-start, pointer capture,
+  proportional dimensions, and resize event detail.
+- Updated runtime architecture documentation and marked US-004 complete.
+- Files changed: `src/index.ts`, `src/resize-math.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `specs/prd.json`, `progress.log`.
+- **Learnings for future iterations:**
+  - Resize calculations belong in a pure helper; pointer and DOM work stays
+    in the component shell.
+  - Synthetic browser pointer events may not have an active pointer, so
+    `setPointerCapture` must tolerate `NotFoundError` in tests.
 ---

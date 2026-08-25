@@ -21,7 +21,8 @@ test('wraps the first child image in a positioned container', t => {
 })
 
 test('renders nothing and warns when no child image exists', t => {
-    document.body.innerHTML = '<image-editor><span>no image</span></image-editor>'
+    document.body.innerHTML =
+        '<image-editor><span>no image</span></image-editor>'
 
     const el = document.querySelector('image-editor')
 
@@ -57,4 +58,73 @@ test('styles the outline and handles for corner resizing', t => {
 
     t.ok(cursors.includes('nwse-resize'))
     t.ok(cursors.includes('nesw-resize'))
+})
+
+test('starts a pointer resize and captures the pointer', t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const handle = el?.querySelector('.bottom-right') as HTMLElement
+    let capturedPointerId:number|null = null
+    let didStart = false
+    handle.setPointerCapture = (pointerId:number) => {
+        capturedPointerId = pointerId
+    }
+    el?.addEventListener('image-editor:resize-start', () => {
+        didStart = true
+    })
+
+    handle.dispatchEvent(new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientX: 320,
+        clientY: 240,
+        pointerId: 7
+    }))
+
+    t.equal(capturedPointerId, 7)
+    t.ok(didStart, 'should emit resize-start')
+})
+
+test('resizes proportionally and emits a throttled resize event', async t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const handle = el?.querySelector('.bottom-right') as HTMLElement
+    const image = el?.querySelector('img') as HTMLImageElement
+    const resizeEvents:Array<CustomEvent<{ width:number; height:number }>> = []
+    el?.addEventListener('image-editor:resize', event => {
+        resizeEvents.push(event as CustomEvent<{
+            width:number
+            height:number
+        }>)
+    })
+
+    handle.dispatchEvent(new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientX: 320,
+        clientY: 240,
+        pointerId: 8
+    }))
+    handle.dispatchEvent(new PointerEvent('pointermove', {
+        bubbles: true,
+        clientX: 360,
+        clientY: 270,
+        pointerId: 8
+    }))
+
+    await new Promise(resolve => requestAnimationFrame(resolve))
+
+    t.equal(image.style.width, '360px')
+    t.equal(image.style.height, '270px')
+    t.equal(resizeEvents.length, 1)
+    t.equal(resizeEvents[0]?.detail.width, 360)
+    t.equal(resizeEvents[0]?.detail.height, 270)
 })

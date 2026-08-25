@@ -45,6 +45,12 @@ values communicate the resize direction in both the stylesheet and the
 rendered handle style, while CSS custom properties control the handle and
 outline appearance. With no image, the element has no rendered children.
 
+Each handle listens for pointer events. A pointerdown records the image's
+rendered dimensions and pointer position, captures the pointer, and emits the
+namespaced `image-editor:resize-start` event. Pointer movement keeps the
+image's aspect ratio, updates inline `width` and `height`, and coalesces the
+namespaced `image-editor:resize` event to one emission per animation frame.
+
 ## DOM and styling boundaries
 
 The component renders in light DOM and does not attach a shadow root.
@@ -56,5 +62,7 @@ FOUCE guard.
 
 ## Events
 
-The base class supplies namespaced event helpers. No component-specific event
-is emitted by this story.
+The base class supplies namespaced event helpers. US-004 adds
+`image-editor:resize-start` and `image-editor:resize`. The resize event detail
+is `{ width, height }` in CSS pixels. Resize interaction is pointer-based and
+uses pointer capture when the browser has an active pointer.
