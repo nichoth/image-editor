@@ -9,7 +9,7 @@
 [![license](https://img.shields.io/badge/license-Big_Time-blue?style=flat-square)](LICENSE)
 
 
-`<package description goes here>`
+A web component that enables in-browser edits to an image.
 
 [See a live demo](https://nichoth.github.io/image-editor/)
 
@@ -19,15 +19,16 @@
 
 ## Install
 
-Installation instructions
-
 ```sh
 npm i -S @substrate-system/image-editor
 ```
 
 ## Example
 
+This component depends on having one `img` element as a child.
+
 ```ts
+
 ```
 
 ## API
@@ -37,12 +38,12 @@ This exposes ESM and common JS via
 
 ### ESM
 ```js
-import '@substrate-system/image-editor'
+import { ImageEditor } from '@substrate-system/image-editor'
 ```
 
 ### Common JS
 ```js
-require('@substrate-system/image-editor')
+const { ImageEditor } = require('@substrate-system/image-editor')
 ```
 
 ### Attributes
@@ -71,7 +72,6 @@ import '@substrate-system/image-editor/min/css'
 
 ```css
 image-editor {
-    --example: pink;
 }
 ```
 
