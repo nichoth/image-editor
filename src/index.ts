@@ -2,7 +2,10 @@
 
 import { WebComponent } from '@substrate-system/web-component'
 import Debug from '@substrate-system/debug'
-import { getResizeDimensions } from './resize-math.js'
+import {
+    getResizeDimensions,
+    normalizeMinimumDimension
+} from './resize-math.js'
 
 const debug = Debug('image-editor')
 
@@ -46,6 +49,7 @@ const EDIT_ICON_PATH =
 
 export class ImageEditor extends WebComponent.create('image-editor') {
     static reflectedBooleanAttributes = ['free-form']
+    static reflectedStringAttributes = ['min-width', 'min-height']
 
     get freeForm ():boolean {
         return this.hasAttribute('free-form')
@@ -53,6 +57,22 @@ export class ImageEditor extends WebComponent.create('image-editor') {
 
     set freeForm (value:boolean) {
         this.toggleAttribute('free-form', Boolean(value))
+    }
+
+    get minWidth ():number {
+        return getMinimumDimension(this.getAttribute('min-width'))
+    }
+
+    set minWidth (value:number) {
+        this.setAttribute('min-width', String(value))
+    }
+
+    get minHeight ():number {
+        return getMinimumDimension(this.getAttribute('min-height'))
+    }
+
+    set minHeight (value:number) {
+        this.setAttribute('min-height', String(value))
     }
 
     #image:HTMLImageElement|null = null
@@ -125,6 +145,8 @@ export class ImageEditor extends WebComponent.create('image-editor') {
             corner: state.corner,
             start: state.start,
             freeForm: state.freeForm,
+            minWidth: this.minWidth,
+            minHeight: this.minHeight,
             clientX: event.clientX,
             clientY: event.clientY,
             startX: state.startX,
@@ -319,6 +341,11 @@ function getImageDimensions (image:HTMLImageElement) {
     const width = rect.width || image.width || image.naturalWidth
     const height = rect.height || image.height || image.naturalHeight
     return { width, height }
+}
+
+function getMinimumDimension (value:string|null):number {
+    const dimension = Number(value)
+    return normalizeMinimumDimension(dimension)
 }
 
 ImageEditor.define()

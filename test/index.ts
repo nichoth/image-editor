@@ -327,6 +327,90 @@ test('free-form mode reflects runtime toggles on the next drag', async t => {
     t.equal(image.style.height, '300px')
 })
 
+test('exposes numeric minimum dimensions with 50px defaults', t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor') as HTMLElement & {
+        minWidth:number
+        minHeight:number
+    }
+
+    t.equal(el.minWidth, 50)
+    t.equal(el.minHeight, 50)
+
+    el.minWidth = 120
+    el.minHeight = 90
+
+    t.equal(el.getAttribute('min-width'), '120')
+    t.equal(el.getAttribute('min-height'), '90')
+    t.equal(el.minWidth, 120)
+    t.equal(el.minHeight, 90)
+})
+
+test('clamps constrained resize while preserving its aspect ratio', async t => {
+    document.body.innerHTML = `
+        <image-editor min-width="100" min-height="80">
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const handle = el?.querySelector('.bottom-right') as HTMLElement
+    const image = el?.querySelector('img') as HTMLImageElement
+
+    handle.dispatchEvent(new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientX: 320,
+        clientY: 240,
+        pointerId: 13
+    }))
+    handle.dispatchEvent(new PointerEvent('pointermove', {
+        bubbles: true,
+        clientX: 0,
+        clientY: 0,
+        pointerId: 13
+    }))
+
+    await new Promise(resolve => requestAnimationFrame(resolve))
+
+    t.equal(image.style.width, '107px')
+    t.equal(image.style.height, '80px')
+})
+
+test('clamps free-form resize axes to their minimum dimensions', async t => {
+    document.body.innerHTML = `
+        <image-editor free-form min-width="100" min-height="80">
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const handle = el?.querySelector('.bottom-right') as HTMLElement
+    const image = el?.querySelector('img') as HTMLImageElement
+
+    handle.dispatchEvent(new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientX: 320,
+        clientY: 240,
+        pointerId: 14
+    }))
+    handle.dispatchEvent(new PointerEvent('pointermove', {
+        bubbles: true,
+        clientX: 0,
+        clientY: 0,
+        pointerId: 14
+    }))
+
+    await new Promise(resolve => requestAnimationFrame(resolve))
+
+    t.equal(image.style.width, '100px')
+    t.equal(image.style.height, '80px')
+})
+
 test('produces a blob from an image bitmap when resizing ends', async t => {
     document.body.innerHTML = `
         <image-editor>

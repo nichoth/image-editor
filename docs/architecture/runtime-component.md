@@ -62,6 +62,11 @@ when the `free-form` attribute is present. It updates inline `width` and
 emission per animation frame. The `freeForm` boolean property reflects the
 same `free-form` attribute, so property assignment and attribute changes both
 select the mode used by the next drag.
+The `min-width` and `min-height` attributes define positive pixel minimums,
+defaulting to 50px each. They are exposed as numeric `minWidth` and
+`minHeight` properties backed by the attributes. Constrained resizing clamps
+the proportional scale so both minimums are satisfied, while free-form
+resizing clamps each axis independently.
 On pointerup, the final dimensions are rendered to an offscreen canvas. The
 component prefers `createImageBitmap(image)` as the draw source and falls
 back to the captured image element when bitmap creation is unavailable or

@@ -11,6 +11,9 @@
   orchestration stays in `src/index.ts`.
 - DOM observers are created after base-class rendering and disconnected in the
   custom element lifecycle.
+- Numeric kebab-case attributes use `reflectedStringAttributes` with typed
+  camel-case accessors; getters validate the attribute source before passing
+  values into pure interaction math.
 
 ## 2026-08-25 01:45 - US-001
 - Implemented `ImageEditor` to capture the first child image and render it in
@@ -151,4 +154,24 @@
   - The browser fixture's image layout can be unstable after an unfinished
     synthetic drag; reset or avoid reusing that layout when testing a second
     pointer sequence.
+---
+
+## 2026-08-25 06:00 - US-009
+- Added reflected `min-width` and `min-height` attributes with numeric
+  `minWidth` and `minHeight` accessors and 50px defaults.
+- Applied minimum dimensions to both proportional and free-form pointer
+  resize calculations; constrained mode preserves the aspect ratio while
+  satisfying both minimums.
+- Added browser coverage for numeric reflection and both resize modes.
+- Updated runtime architecture documentation, reusable project guidance, and
+  marked US-009 complete in the PRD.
+- Files changed: `src/index.ts`, `src/resize-math.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `AGENTS.md`, `specs/prd.json`,
+  `progress.log`.
+- **Learnings for future iterations:**
+  - In aspect-ratio mode, use the larger minimum scale required by either
+    axis; clamping width and height independently would distort the image.
+  - Reflected string attributes can remain the source of truth while typed
+    numeric accessors normalize missing or invalid values at read time.
 ---

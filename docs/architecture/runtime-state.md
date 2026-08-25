@@ -22,6 +22,10 @@ Authoritative sources are:
 - **Resize mode:** The reflected `free-form` boolean attribute is exposed as
   the `freeForm` property. Its value is captured at pointerdown, so a mode
   change applies to the next drag without changing an active drag.
+- **Minimum dimensions:** The reflected `min-width` and `min-height` string
+  attributes are exposed as numeric `minWidth` and `minHeight` properties.
+  Missing, non-positive, or non-finite values resolve to the 50px default at
+  the component boundary before the values enter resize math.
 - **Resize output:** Pointerup creates a transient offscreen canvas and
   resolves a blob from either an image bitmap or the captured image element.
 
@@ -40,8 +44,9 @@ There are no server-side state writes. This is a client-side custom element.
 - Pointerdown starts a resize from a corner and captures its pointer.
 - Pointermove computes proportional dimensions from the initial image size,
   unless the captured resize mode is free-form, in which case each axis is
-  computed independently. It writes dimensions to the image's inline styles
-  and emits a frame-coalesced resize event.
+  computed independently. Both modes apply the configured minimum dimensions.
+  It writes dimensions to the image's inline styles and emits a
+  frame-coalesced resize event.
 - Pointerup, pointercancel, or disconnection clears the active resize state.
   A completed pointerup emits resize-end after canvas.toBlob() returns a
   non-null blob, and closes any bitmap used for drawing.
