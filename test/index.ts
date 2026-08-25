@@ -36,7 +36,9 @@ test('renders four corner resize handles', t => {
         </image-editor>
     `
 
-    const handles = document.querySelectorAll('.image-editor-handle')
+    const handles = document.querySelectorAll<HTMLElement>(
+        '.image-editor-handle'
+    )
     const corners = Array.from(handles).map(handle => handle.className)
 
     t.equal(handles.length, 4, 'should render one handle for each corner')
@@ -44,4 +46,15 @@ test('renders four corner resize handles', t => {
     t.ok(corners.includes('image-editor-handle top-right'))
     t.ok(corners.includes('image-editor-handle bottom-left'))
     t.ok(corners.includes('image-editor-handle bottom-right'))
+})
+
+test('styles the outline and handles for corner resizing', t => {
+    const handles = document.querySelectorAll('.image-editor-handle')
+    const cursors: Array<string> = []
+    handles.forEach(handle => {
+        cursors.push((handle as HTMLElement).style.cursor)
+    })
+
+    t.ok(cursors.includes('nwse-resize'))
+    t.ok(cursors.includes('nesw-resize'))
 })

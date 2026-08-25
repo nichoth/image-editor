@@ -41,9 +41,9 @@ image-editor
 
 The container has `position: relative` and an always-visible dashed outline.
 Each handle is absolutely positioned at a container corner. Diagonal cursor
-values communicate the resize direction, while CSS custom properties control
-the handle and outline appearance. With no image, the element has no rendered
-children.
+values communicate the resize direction in both the stylesheet and the
+rendered handle style, while CSS custom properties control the handle and
+outline appearance. With no image, the element has no rendered children.
 
 ## DOM and styling boundaries
 

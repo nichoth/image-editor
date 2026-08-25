@@ -2,6 +2,9 @@
 - The component uses `WebComponent.create('image-editor')` for registration.
 - Authored light-DOM content is captured in `connectedCallback()` before the
   base class invokes `render()`.
+- Corner affordances keep their cursor direction in the rendered handle style
+  as well as the stylesheet, so the direction remains observable and stable
+  during later pointer interaction work.
 
 ## 2026-08-25 01:45 - US-001
 - Implemented `ImageEditor` to capture the first child image and render it in
@@ -33,4 +36,20 @@
   - This configuration-only story needs no additional browser behavior test;
     typecheck, lint, and the existing browser suite provide the relevant
     regression coverage.
+---
+
+## 2026-08-25 02:30 - US-003
+- Completed the resize affordance contract with four corner handles, an
+  always-visible dashed outline, absolute corner positioning, and diagonal
+  cursor directions.
+- Added browser coverage for the rendered cursor directions and retained the
+  existing DOM coverage for all four corners.
+- Files changed: `src/index.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`, `specs/prd.json`,
+  `progress.log`.
+- **Learnings for future iterations:**
+  - The tapzero browser harness exposes `ok` and `equal`, but not `match`;
+    assertions should use observable DOM state.
+  - The test server does not serve source CSS by URL, so stylesheet behavior
+    is covered through the rendered component contract and build checks.
 ---

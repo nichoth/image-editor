@@ -35,15 +35,16 @@ export class ImageEditor extends WebComponent.create('image-editor') {
 
 function createResizeHandles () {
     const corners = [
-        'top-left',
-        'top-right',
-        'bottom-left',
-        'bottom-right'
+        ['top-left', 'nwse-resize'],
+        ['top-right', 'nesw-resize'],
+        ['bottom-left', 'nesw-resize'],
+        ['bottom-right', 'nwse-resize']
     ]
 
-    return corners.map(corner => {
+    return corners.map(([corner, cursor]) => {
         const handle = document.createElement('span')
         handle.className = `image-editor-handle ${corner}`
+        handle.style.cursor = cursor
         return handle
     })
 }
