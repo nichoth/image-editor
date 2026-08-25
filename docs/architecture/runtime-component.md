@@ -34,6 +34,7 @@ image-editor
 └── div.image-editor-container
     ├── img     the first authored image
     ├── div.image-editor-overlay
+    │   ├── button.alt
     │   └── div.image-editor-controls
     │       └── button.edit > svg > path
     ├── span.image-editor-handle.top-left
@@ -47,9 +48,10 @@ Each handle is absolutely positioned at a container corner. Diagonal cursor
 values communicate the resize direction in both the stylesheet and the
 rendered handle style, while CSS custom properties control the handle and
 outline appearance. The overlay fills the container, uses flex layout with
-space between, and places the edit control on the right. The edit button uses
-the pencil path shared with `image-input` and has no built-in dialog behavior.
-With no image, the element has no rendered children.
+space between, places the `+ALT`/`ALT` badge on the left, and places the edit
+control on the right. The edit button uses the pencil path shared with
+`image-input` and has no built-in dialog behavior. The badge has no built-in
+dialog behavior either. With no image, the element has no rendered children.
 
 Each handle listens for pointer events. A pointerdown records the image's
 rendered dimensions and pointer position, captures the pointer, and emits the
@@ -80,4 +82,7 @@ dimensions are CSS pixels, and the blob canvas uses those same pixel
 dimensions. US-006 adds cancelable `image-editor:edit` with `{ img }`, where
 `img` is the captured `HTMLImageElement`; consumers own any editing UI. Resize
 interaction is pointer-based and uses pointer capture when the browser has an
-active pointer.
+active pointer. US-007 adds cancelable `image-editor:alt` with `{ alt, img }`;
+`alt` is the image attribute value or an empty string when the attribute is
+absent. A `MutationObserver` watches only the captured image's `alt` attribute
+and updates the badge. The observer is disconnected with the component.

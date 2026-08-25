@@ -7,6 +7,8 @@
   during later pointer interaction work.
 - Pure resize calculations live in `src/resize-math.ts`; DOM and pointer
   orchestration stays in `src/index.ts`.
+- DOM observers are created after base-class rendering and disconnected in the
+  custom element lifecycle.
 
 ## 2026-08-25 01:45 - US-001
 - Implemented `ImageEditor` to capture the first child image and render it in
@@ -109,4 +111,22 @@
     `M4 20h4L18.5 9.5a2.1 2.1 0 0 0 -3-3L5 17v3z`.
   - Adding an overlay changes the container child count, so DOM structure
     assertions must be updated with the architecture contract.
+---
+
+## 2026-08-25 04:00 - US-007
+- Added a left-side ALT badge button that shows `+ALT` for absent or empty
+  alt text and `ALT` for a non-empty alt attribute.
+- Added cancelable `image-editor:alt` events with `{ alt, img }` detail.
+- Added a MutationObserver for the captured image's `alt` attribute and
+  disconnect it in `disconnectedCallback()`.
+- Added browser coverage for badge rendering, event detail, mutation updates,
+  overlay ordering, and observer disconnection.
+- Updated the button styling and runtime architecture documentation, then
+  marked US-007 complete.
+- Files changed: `src/index.ts`, `src/index.css`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `specs/prd.json`, `progress.log`.
+- **Learnings for future iterations:**
+  - Normalize an absent `alt` attribute to an empty string at the event
+    boundary so consumers receive one stable detail type.
 ---

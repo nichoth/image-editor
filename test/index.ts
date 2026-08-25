@@ -97,6 +97,97 @@ test('renders an edit button with the pencil icon and emits edit', t => {
     t.equal(el?.querySelector('dialog'), null)
 })
 
+test('renders an empty ALT badge and emits alt', t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const image = el?.querySelector('img')
+    const button = el?.querySelector('button.alt') as HTMLButtonElement
+    let altText:string|null = null
+    let altImage:HTMLImageElement|null = null
+    let wasCancelable = false
+
+    el?.addEventListener('image-editor:alt', event => {
+        const customEvent = event as CustomEvent<{
+            alt:string
+            img:HTMLImageElement
+        }>
+        altText = customEvent.detail.alt
+        altImage = customEvent.detail.img
+        wasCancelable = customEvent.cancelable
+    })
+
+    t.ok(button, 'should render the ALT badge button')
+    if (!button) return
+    t.equal(button.textContent, '+ALT')
+    t.equal(button.parentElement?.lastElementChild?.className,
+        'image-editor-controls')
+    button.click()
+
+    t.equal(altText, '')
+    t.equal(altImage, image)
+    t.ok(wasCancelable, 'should allow consumers to cancel the event')
+    t.equal(el?.querySelector('dialog'), null)
+})
+
+test('renders ALT for a non-empty image alt attribute', t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const button = document.querySelector(
+        'button.alt'
+    ) as HTMLButtonElement
+
+    t.equal(button.textContent, 'ALT')
+})
+
+test('updates the ALT badge when the image alt attribute changes',
+    async t => {
+        document.body.innerHTML = `
+            <image-editor>
+                <img src="image.jpg" width="320" height="240" alt="A test">
+            </image-editor>
+        `
+
+        const image = document.querySelector('image-editor img')
+        const button = document.querySelector(
+            'button.alt'
+        ) as HTMLButtonElement
+
+        image?.setAttribute('alt', '')
+        await Promise.resolve()
+        t.equal(button.textContent, '+ALT')
+
+        image?.setAttribute('alt', 'Updated')
+        await Promise.resolve()
+        t.equal(button.textContent, 'ALT')
+    })
+
+test('disconnects the ALT observer when the editor is removed', async t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const image = el?.querySelector('img')
+    const button = el?.querySelector('button.alt') as HTMLButtonElement
+
+    el?.remove()
+    image?.removeAttribute('alt')
+    await Promise.resolve()
+
+    t.equal(button.textContent, 'ALT')
+})
+
 test('starts a pointer resize and captures the pointer', t => {
     document.body.innerHTML = `
         <image-editor>

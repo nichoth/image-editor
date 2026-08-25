@@ -9,9 +9,12 @@ Authoritative sources are:
 
 - **Captured image:** The first authored `HTMLImageElement`, held by the
   private `ImageEditor.#image` field for the element instance.
+- **ALT observer:** A private `MutationObserver` watches the captured image's
+  `alt` attribute while the element is connected.
 - **Rendered content:** Light-DOM nodes under `image-editor`, owned by the
   element and replaced by `render()`. A rendered image container also owns four
-  corner resize-handle elements and an overlay containing the edit button.
+  corner resize-handle elements and an overlay containing the ALT and edit
+  buttons.
 - **Resize interaction:** Private pointer state stores the active corner,
   pointer identifier, starting pointer position, starting dimensions, and
   handle. A pending animation-frame identifier coalesces resize events.
@@ -28,6 +31,8 @@ There are no server-side state writes. This is a client-side custom element.
   container and its four corner handles.
 - If no image was captured, rendering clears the light DOM and logs a warning.
 - Disconnecting retains the captured image for later reconnection.
+- Connecting creates an `alt` observer after rendering; disconnecting removes
+  the observer so later image mutations do not update detached controls.
 - Pointerdown starts a resize from a corner and captures its pointer.
 - Pointermove computes proportional dimensions from the initial image size,
   writes them to the image's inline styles, and emits a frame-coalesced resize
@@ -38,3 +43,5 @@ There are no server-side state writes. This is a client-side custom element.
 - Clicking the edit button prevents native button behavior and emits a
   cancelable edit event with the captured image. The component does not create
   an editing dialog.
+- Clicking the ALT badge prevents native button behavior and emits a
+  cancelable alt event with the current attribute value and captured image.

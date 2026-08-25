@@ -34,12 +34,18 @@ type EditDetail = {
     readonly img:HTMLImageElement
 }
 
+type AltDetail = {
+    readonly alt:string
+    readonly img:HTMLImageElement
+}
+
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 const EDIT_ICON_PATH =
     'M4 20h4L18.5 9.5a2.1 2.1 0 0 0 -3-3L5 17v3z'
 
 export class ImageEditor extends WebComponent.create('image-editor') {
     #image:HTMLImageElement|null = null
+    #altObserver:MutationObserver|null = null
     #resizeFrame:number|null = null
     #resizeDimensions:{ width:number; height:number }|null = null
     #resizeState:ResizeState|null = null
@@ -48,6 +54,7 @@ export class ImageEditor extends WebComponent.create('image-editor') {
         if (!this.#image) this.#image = this.querySelector('img')
         if (!this.#image) debug('warning: no child image found')
         super.connectedCallback()
+        this.observeAltAttribute()
     }
 
     render () {
@@ -58,12 +65,14 @@ export class ImageEditor extends WebComponent.create('image-editor') {
         const container = document.createElement('div')
         container.className = 'image-editor-container'
         container.append(this.#image)
-        container.append(createEditOverlay(this))
+        container.append(createEditOverlay(this, this.#image))
         container.append(...createResizeHandles(this))
         this.replaceChildren(container)
     }
 
     disconnectedCallback () {
+        this.#altObserver?.disconnect()
+        this.#altObserver = null
         this.cancelResizeFrame()
         this.#resizeState = null
     }
@@ -144,11 +153,37 @@ export class ImageEditor extends WebComponent.create('image-editor') {
         this.emit<EditDetail>('edit', { detail: { img: this.#image } })
     }
 
+    handleAlt = (event:MouseEvent):void => {
+        event.preventDefault()
+        if (!this.#image) return
+        this.emit<AltDetail>('alt', {
+            detail: {
+                alt: getImageAlt(this.#image),
+                img: this.#image
+            }
+        })
+    }
+
     private cancelResizeFrame ():void {
         if (this.#resizeFrame !== null) {
             cancelAnimationFrame(this.#resizeFrame)
             this.#resizeFrame = null
         }
+    }
+
+    private observeAltAttribute ():void {
+        this.#altObserver?.disconnect()
+        if (!this.#image) return
+        const image = this.#image
+        const badge = this.querySelector<HTMLButtonElement>('button.alt')
+        if (!badge) return
+        this.#altObserver = new MutationObserver(() => {
+            updateAltBadge(badge, image)
+        })
+        this.#altObserver.observe(image, {
+            attributes: true,
+            attributeFilter: ['alt']
+        })
     }
 }
 
@@ -213,9 +248,19 @@ function createResizeHandles (editor:ImageEditor) {
     })
 }
 
-function createEditOverlay (editor:ImageEditor):HTMLElement {
+function createEditOverlay (
+    editor:ImageEditor,
+    image:HTMLImageElement
+):HTMLElement {
     const overlay = document.createElement('div')
     overlay.className = 'image-editor-overlay'
+
+    const altButton = document.createElement('button')
+    altButton.type = 'button'
+    altButton.className = 'alt'
+    altButton.setAttribute('aria-label', 'Edit alternative text')
+    updateAltBadge(altButton, image)
+    altButton.addEventListener('click', editor.handleAlt)
 
     const controls = document.createElement('div')
     controls.className = 'image-editor-controls'
@@ -234,8 +279,19 @@ function createEditOverlay (editor:ImageEditor):HTMLElement {
     icon.append(path)
     button.append(icon)
     controls.append(button)
-    overlay.append(controls)
+    overlay.append(altButton, controls)
     return overlay
+}
+
+function getImageAlt (image:HTMLImageElement):string {
+    return image.getAttribute('alt') ?? ''
+}
+
+function updateAltBadge (
+    button:HTMLButtonElement,
+    image:HTMLImageElement
+):void {
+    button.textContent = getImageAlt(image) ? 'ALT' : '+ALT'
 }
 
 function getResizeCorner (handle:HTMLElement):ResizeCorner|null {
