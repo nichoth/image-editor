@@ -1,4 +1,7 @@
 import { ImageEditor } from '../src/index.js'
+import Debug from '@substrate-system/debug'
+import { qs } from '@substrate-system/web-component/qs'
+const debug = Debug('image-editor')
 
 if (import.meta.env.DEV || import.meta.env.MODE !== 'production') {
     localStorage.setItem('DEBUG', 'image-editor')
@@ -29,3 +32,14 @@ await Promise.race([
 ])
 
 document.documentElement.classList.remove('reduce-fouce')
+
+const editor = qs(ImageEditor.TAG) as ImageEditor
+debug('the editor...', editor)
+
+editor.on('edit', ev => {
+    debug('edit event', ev)
+})
+
+editor.on('alt', (ev) => {
+    debug('alt event...', ev)
+})

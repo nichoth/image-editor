@@ -16,8 +16,7 @@ declare global {
     }
 }
 
-type ResizeCorner = 'top-left' | 'top-right' |
-    'bottom-left' | 'bottom-right'
+type ResizeCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 
 type ResizeState = {
     readonly corner:ResizeCorner
@@ -56,8 +55,7 @@ type AltDetail = {
 }
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
-const EDIT_ICON_PATH =
-    'M4 20h4L18.5 9.5a2.1 2.1 0 0 0 -3-3L5 17v3z'
+const EDIT_ICON_PATH = 'M4 20h4L18.5 9.5a2.1 2.1 0 0 0 -3-3L5 17v3z'
 
 export class ImageEditor extends WebComponent.create('image-editor') {
     static reflectedBooleanAttributes = ['free-form']
@@ -399,7 +397,7 @@ function createEditOverlay (
 
     const button = document.createElement('button')
     button.type = 'button'
-    button.className = 'edit'
+    button.className = 'icon edit'
     button.setAttribute('aria-label', 'Edit image')
     button.addEventListener('click', editor.handleEdit)
 
