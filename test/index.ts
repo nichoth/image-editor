@@ -257,6 +257,76 @@ test('resizes proportionally and emits a throttled resize event', async t => {
     t.equal(resizeEvents[0]?.detail.height, 270)
 })
 
+test('free-form mode resizes width and height independently', async t => {
+    document.body.innerHTML = `
+        <image-editor free-form>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor') as HTMLElement & {
+        freeForm:boolean
+    }
+    const handle = el.querySelector('.bottom-right') as HTMLElement
+    const image = el.querySelector('img') as HTMLImageElement
+
+    handle.dispatchEvent(new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientX: 320,
+        clientY: 240,
+        pointerId: 11
+    }))
+    handle.dispatchEvent(new PointerEvent('pointermove', {
+        bubbles: true,
+        clientX: 360,
+        clientY: 300,
+        pointerId: 11
+    }))
+
+    await new Promise(resolve => requestAnimationFrame(resolve))
+
+    t.ok(el.freeForm, 'should expose the freeForm boolean property')
+    t.equal(image.style.width, '360px')
+    t.equal(image.style.height, '300px')
+})
+
+test('free-form mode reflects runtime toggles on the next drag', async t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor') as HTMLElement & {
+        freeForm:boolean
+    }
+    const handle = el.querySelector('.bottom-right') as HTMLElement
+    const image = el.querySelector('img') as HTMLImageElement
+
+    t.equal(el.freeForm, false)
+    el.freeForm = true
+    t.ok(el.hasAttribute('free-form'))
+    el.freeForm = false
+    t.equal(el.hasAttribute('free-form'), false)
+
+    handle.dispatchEvent(new PointerEvent('pointerdown', {
+        bubbles: true,
+        clientX: 320,
+        clientY: 240,
+        pointerId: 12
+    }))
+    handle.dispatchEvent(new PointerEvent('pointermove', {
+        bubbles: true,
+        clientX: 360,
+        clientY: 300,
+        pointerId: 12
+    }))
+    await new Promise(resolve => requestAnimationFrame(resolve))
+
+    t.equal(image.style.width, '400px')
+    t.equal(image.style.height, '300px')
+})
+
 test('produces a blob from an image bitmap when resizing ends', async t => {
     document.body.innerHTML = `
         <image-editor>

@@ -11,6 +11,7 @@ type ResizeDimensions = {
 type ResizeMathOptions = {
     readonly corner:ResizeCorner
     readonly start:ResizeDimensions
+    readonly freeForm:boolean
     readonly clientX:number
     readonly clientY:number
     readonly startX:number
@@ -23,6 +24,7 @@ export function getResizeDimensions (
     const {
         corner,
         start,
+        freeForm,
         clientX,
         clientY,
         startX,
@@ -34,6 +36,15 @@ export function getResizeDimensions (
         (clientX - startX) * horizontalDirection) / start.width
     const heightScale = (start.height +
         (clientY - startY) * verticalDirection) / start.height
+    if (freeForm) {
+        return {
+            width: Math.max(Math.round(start.width +
+                (clientX - startX) * horizontalDirection), 1),
+            height: Math.max(Math.round(start.height +
+                (clientY - startY) * verticalDirection), 1)
+        }
+    }
+
     const scale = widthScale < 1 && heightScale < 1
         ? Math.min(widthScale, heightScale)
         : Math.max(widthScale, heightScale)

@@ -17,6 +17,7 @@ type ResizeCorner = 'top-left' | 'top-right' |
 
 type ResizeState = {
     readonly corner:ResizeCorner
+    readonly freeForm:boolean
     readonly start:{ width:number; height:number }
     readonly startX:number
     readonly startY:number
@@ -44,6 +45,16 @@ const EDIT_ICON_PATH =
     'M4 20h4L18.5 9.5a2.1 2.1 0 0 0 -3-3L5 17v3z'
 
 export class ImageEditor extends WebComponent.create('image-editor') {
+    static reflectedBooleanAttributes = ['free-form']
+
+    get freeForm ():boolean {
+        return this.hasAttribute('free-form')
+    }
+
+    set freeForm (value:boolean) {
+        this.toggleAttribute('free-form', Boolean(value))
+    }
+
     #image:HTMLImageElement|null = null
     #altObserver:MutationObserver|null = null
     #resizeFrame:number|null = null
@@ -86,6 +97,7 @@ export class ImageEditor extends WebComponent.create('image-editor') {
 
         this.#resizeState = {
             corner,
+            freeForm: this.freeForm,
             start: dimensions,
             startX: event.clientX,
             startY: event.clientY,
@@ -112,6 +124,7 @@ export class ImageEditor extends WebComponent.create('image-editor') {
         this.#resizeDimensions = getResizeDimensions({
             corner: state.corner,
             start: state.start,
+            freeForm: state.freeForm,
             clientX: event.clientX,
             clientY: event.clientY,
             startX: state.startX,

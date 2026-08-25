@@ -16,8 +16,12 @@ Authoritative sources are:
   corner resize-handle elements and an overlay containing the ALT and edit
   buttons.
 - **Resize interaction:** Private pointer state stores the active corner,
-  pointer identifier, starting pointer position, starting dimensions, and
-  handle. A pending animation-frame identifier coalesces resize events.
+  pointer identifier, starting pointer position, starting dimensions, the
+  resize mode, and handle. A pending animation-frame identifier coalesces
+  resize events.
+- **Resize mode:** The reflected `free-form` boolean attribute is exposed as
+  the `freeForm` property. Its value is captured at pointerdown, so a mode
+  change applies to the next drag without changing an active drag.
 - **Resize output:** Pointerup creates a transient offscreen canvas and
   resolves a blob from either an image bitmap or the captured image element.
 
@@ -35,8 +39,9 @@ There are no server-side state writes. This is a client-side custom element.
   the observer so later image mutations do not update detached controls.
 - Pointerdown starts a resize from a corner and captures its pointer.
 - Pointermove computes proportional dimensions from the initial image size,
-  writes them to the image's inline styles, and emits a frame-coalesced resize
-  event.
+  unless the captured resize mode is free-form, in which case each axis is
+  computed independently. It writes dimensions to the image's inline styles
+  and emits a frame-coalesced resize event.
 - Pointerup, pointercancel, or disconnection clears the active resize state.
   A completed pointerup emits resize-end after canvas.toBlob() returns a
   non-null blob, and closes any bitmap used for drawing.

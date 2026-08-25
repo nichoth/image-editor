@@ -56,8 +56,12 @@ dialog behavior either. With no image, the element has no rendered children.
 Each handle listens for pointer events. A pointerdown records the image's
 rendered dimensions and pointer position, captures the pointer, and emits the
 namespaced `image-editor:resize-start` event. Pointer movement keeps the
-image's aspect ratio, updates inline `width` and `height`, and coalesces the
-namespaced `image-editor:resize` event to one emission per animation frame.
+image's aspect ratio by default, or changes width and height independently
+when the `free-form` attribute is present. It updates inline `width` and
+`height`, and coalesces the namespaced `image-editor:resize` event to one
+emission per animation frame. The `freeForm` boolean property reflects the
+same `free-form` attribute, so property assignment and attribute changes both
+select the mode used by the next drag.
 On pointerup, the final dimensions are rendered to an offscreen canvas. The
 component prefers `createImageBitmap(image)` as the draw source and falls
 back to the captured image element when bitmap creation is unavailable or

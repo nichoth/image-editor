@@ -2,6 +2,8 @@
 - The component uses `WebComponent.create('image-editor')` for registration.
 - Authored light-DOM content is captured in `connectedCallback()` before the
   base class invokes `render()`.
+- Reflected attributes use exact HTML names in the base class; kebab-case
+  attributes can expose a typed camel-case accessor backed by that attribute.
 - Corner affordances keep their cursor direction in the rendered handle style
   as well as the stylesheet, so the direction remains observable and stable
   during later pointer interaction work.
@@ -129,4 +131,24 @@
 - **Learnings for future iterations:**
   - Normalize an absent `alt` attribute to an empty string at the event
     boundary so consumers receive one stable detail type.
+---
+
+## 2026-08-25 05:00 - US-008
+- Added the reflected `free-form` boolean attribute and `freeForm` property.
+- Added independent width and height resize math for free-form mode while
+  preserving proportional resizing by default.
+- Captured resize mode at pointerdown so runtime changes apply to the next
+  drag, and added browser coverage for the property and mode transitions.
+- Updated runtime architecture documentation, reusable project guidance, and
+  marked US-008 complete in the PRD.
+- Files changed: `src/index.ts`, `src/resize-math.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `AGENTS.md`, `specs/prd.json`,
+  `progress.log`.
+- **Learnings for future iterations:**
+  - Capture attribute-driven interaction modes in private pointer state so a
+    runtime toggle cannot alter a drag already in progress.
+  - The browser fixture's image layout can be unstable after an unfinished
+    synthetic drag; reset or avoid reusing that layout when testing a second
+    pointer sequence.
 ---
