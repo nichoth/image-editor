@@ -19,6 +19,9 @@ Authoritative sources are:
   pointer identifier, starting pointer position, starting dimensions, the
   resize mode, and handle. A pending animation-frame identifier coalesces
   resize events.
+- **Keyboard resize interaction:** Private keyboard state stores the active
+  corner, captured resize mode, starting dimensions and inline styles, the
+  accumulated keyboard delta, final dimensions, and handle.
 - **Resize mode:** The reflected `free-form` boolean attribute is exposed as
   the `freeForm` property. Its value is captured at pointerdown, so a mode
   change applies to the next drag without changing an active drag.
@@ -50,6 +53,11 @@ There are no server-side state writes. This is a client-side custom element.
 - Pointerup, pointercancel, or disconnection clears the active resize state.
   A completed pointerup emits resize-end after canvas.toBlob() returns a
   non-null blob, and closes any bitmap used for drawing.
+- The first arrow key on a focused handle starts a keyboard transaction.
+  Arrow keys accumulate 10px steps, or 50px with Shift, through the same
+  constrained resize math. Keyup commits the dimensions through the canvas
+  blob path and emits resize-end. Escape restores the starting inline styles
+  and clears the transaction without emitting resize-end.
 - Clicking the edit button prevents native button behavior and emits a
   cancelable edit event with the captured image. The component does not create
   an editing dialog.

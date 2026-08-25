@@ -3,6 +3,7 @@
 import { WebComponent } from '@substrate-system/web-component'
 import Debug from '@substrate-system/debug'
 import {
+    getKeyboardResizeDelta,
     getResizeDimensions,
     normalizeMinimumDimension
 } from './resize-math.js'
@@ -25,6 +26,17 @@ type ResizeState = {
     readonly startX:number
     readonly startY:number
     readonly pointerId:number
+    readonly handle:HTMLElement
+}
+
+type KeyboardResizeState = {
+    readonly corner:ResizeCorner
+    readonly freeForm:boolean
+    readonly start:{ width:number; height:number }
+    readonly startStyle:{ width:string; height:string }
+    readonly deltaX:number
+    readonly deltaY:number
+    readonly dimensions:{ width:number; height:number }
     readonly handle:HTMLElement
 }
 
@@ -80,6 +92,7 @@ export class ImageEditor extends WebComponent.create('image-editor') {
     #resizeFrame:number|null = null
     #resizeDimensions:{ width:number; height:number }|null = null
     #resizeState:ResizeState|null = null
+    #keyboardResizeState:KeyboardResizeState|null = null
 
     connectedCallback () {
         if (!this.#image) this.#image = this.querySelector('img')
@@ -106,6 +119,7 @@ export class ImageEditor extends WebComponent.create('image-editor') {
         this.#altObserver = null
         this.cancelResizeFrame()
         this.#resizeState = null
+        this.#keyboardResizeState = null
     }
 
     handlePointerDown = (event:PointerEvent):void => {
@@ -133,6 +147,62 @@ export class ImageEditor extends WebComponent.create('image-editor') {
             }
         }
         this.emit('resize-start')
+    }
+
+    handleKeyDown = (event:KeyboardEvent):void => {
+        if (!this.#image) return
+        const handle = event.currentTarget as HTMLElement
+        const corner = getResizeCorner(handle)
+        if (!corner) return
+        if (event.key === 'Escape') {
+            if (this.#keyboardResizeState?.handle !== handle) return
+            event.preventDefault()
+            this.restoreKeyboardResize()
+            return
+        }
+        if (!isKeyboardResizeKey(event.key)) return
+
+        event.preventDefault()
+        const delta = getKeyboardResizeDelta(event.key, event.shiftKey)
+        const current = this.#keyboardResizeState
+        const state = current?.handle === handle
+            ? current
+            : createKeyboardResizeState(this.#image, this.freeForm,
+                corner, handle)
+        if (!current || current.handle !== handle) {
+            this.#keyboardResizeState = state
+            this.emit('resize-start')
+        }
+
+        const nextState = {
+            ...state,
+            deltaX: state.deltaX + delta.x,
+            deltaY: state.deltaY + delta.y
+        }
+        const dimensions = getResizeDimensions({
+            corner: nextState.corner,
+            start: nextState.start,
+            freeForm: nextState.freeForm,
+            minWidth: this.minWidth,
+            minHeight: this.minHeight,
+            clientX: nextState.deltaX,
+            clientY: nextState.deltaY,
+            startX: 0,
+            startY: 0
+        })
+        this.#keyboardResizeState = { ...nextState, dimensions }
+        this.#image.style.width = `${dimensions.width}px`
+        this.#image.style.height = `${dimensions.height}px`
+        this.emit('resize', { detail: dimensions })
+    }
+
+    handleKeyUp = async (event:KeyboardEvent):Promise<void> => {
+        const state = this.#keyboardResizeState
+        if (!state || state.handle !== event.currentTarget ||
+            !isKeyboardResizeKey(event.key)) {
+            return
+        }
+        await this.finishKeyboardResize(state)
     }
 
     handlePointerMove = (event:PointerEvent):void => {
@@ -206,6 +276,29 @@ export class ImageEditor extends WebComponent.create('image-editor') {
         }
     }
 
+    private restoreKeyboardResize ():void {
+        const state = this.#keyboardResizeState
+        if (!state || !this.#image) return
+        this.#image.style.width = state.startStyle.width
+        this.#image.style.height = state.startStyle.height
+        this.#keyboardResizeState = null
+    }
+
+    private async finishKeyboardResize (
+        state:KeyboardResizeState
+    ):Promise<void> {
+        if (this.#keyboardResizeState !== state || !this.#image) return
+        this.#keyboardResizeState = null
+        const blob = await createResizeBlob(this.#image, state.dimensions)
+        if (!blob) return
+        this.emit<ResizeBlobDetail>('resize-end', {
+            detail: {
+                blob,
+                ...state.dimensions
+            }
+        })
+    }
+
     private observeAltAttribute ():void {
         this.#altObserver?.disconnect()
         if (!this.#image) return
@@ -274,11 +367,15 @@ function createResizeHandles (editor:ImageEditor) {
     return corners.map(([corner, cursor]) => {
         const handle = document.createElement('span')
         handle.className = `image-editor-handle ${corner}`
+        handle.tabIndex = 0
+        handle.setAttribute('aria-label', `Resize from ${corner} corner`)
         handle.style.cursor = cursor
         handle.addEventListener('pointerdown', editor.handlePointerDown)
         handle.addEventListener('pointermove', editor.handlePointerMove)
         handle.addEventListener('pointerup', editor.handlePointerUp)
         handle.addEventListener('pointercancel', editor.handlePointerUp)
+        handle.addEventListener('keydown', editor.handleKeyDown)
+        handle.addEventListener('keyup', editor.handleKeyUp)
         return handle
     })
 }
@@ -341,6 +438,35 @@ function getImageDimensions (image:HTMLImageElement) {
     const width = rect.width || image.width || image.naturalWidth
     const height = rect.height || image.height || image.naturalHeight
     return { width, height }
+}
+
+function createKeyboardResizeState (
+    image:HTMLImageElement,
+    freeForm:boolean,
+    corner:ResizeCorner,
+    handle:HTMLElement
+):KeyboardResizeState {
+    const start = getImageDimensions(image)
+    return {
+        corner,
+        freeForm,
+        start,
+        startStyle: {
+            width: image.style.width,
+            height: image.style.height
+        },
+        deltaX: 0,
+        deltaY: 0,
+        dimensions: start,
+        handle
+    }
+}
+
+function isKeyboardResizeKey (
+    key:string
+):key is 'ArrowUp' | 'ArrowRight' | 'ArrowDown' | 'ArrowLeft' {
+    return key === 'ArrowUp' || key === 'ArrowRight' ||
+        key === 'ArrowDown' || key === 'ArrowLeft'
 }
 
 function getMinimumDimension (value:string|null):number {

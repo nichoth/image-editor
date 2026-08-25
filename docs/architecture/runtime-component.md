@@ -67,6 +67,13 @@ defaulting to 50px each. They are exposed as numeric `minWidth` and
 `minHeight` properties backed by the attributes. Constrained resizing clamps
 the proportional scale so both minimums are satisfied, while free-form
 resizing clamps each axis independently.
+Each handle is also focusable and exposes an ARIA label describing its corner.
+Arrow-key resizing uses 10px steps, or 50px with Shift, and keeps the same
+aspect-ratio and minimum-dimension rules as pointer resizing. The first arrow
+key in a keyboard sequence captures the starting dimensions and emits
+`resize-start`; keyup commits the sequence through the same canvas/blob path as
+pointerup. Escape restores the original inline dimensions and cancels the
+sequence.
 On pointerup, the final dimensions are rendered to an offscreen canvas. The
 component prefers `createImageBitmap(image)` as the draw source and falls
 back to the captured image element when bitmap creation is unavailable or
@@ -95,3 +102,6 @@ active pointer. US-007 adds cancelable `image-editor:alt` with `{ alt, img }`;
 `alt` is the image attribute value or an empty string when the attribute is
 absent. A `MutationObserver` watches only the captured image's `alt` attribute
 and updates the badge. The observer is disconnected with the component.
+Keyboard resizing emits the same namespaced resize events as pointer resizing;
+keyups commit the canvas output and Escape cancels without emitting
+`resize-end`.

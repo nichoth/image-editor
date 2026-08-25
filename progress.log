@@ -175,3 +175,24 @@
   - Reflected string attributes can remain the source of truth while typed
     numeric accessors normalize missing or invalid values at read time.
 ---
+
+## 2026-08-25 07:00 - US-010
+- Added focusable, ARIA-labeled corner handles with arrow-key resizing using
+  10px steps and 50px Shift steps.
+- Added keyboard resize transactions that preserve aspect ratio by default,
+  support free-form mode and minimum dimensions, commit a canvas blob on
+  keyup, and restore inline dimensions on Escape.
+- Added browser coverage for accessibility attributes, proportional and
+  free-form keyboard resizing, cancellation, and blob output.
+- Updated runtime architecture documentation, reusable project guidance, and
+  marked US-010 complete in the PRD.
+- Files changed: `src/index.ts`, `src/resize-math.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `AGENTS.md`, `specs/prd.json`,
+  `progress.log`.
+- **Learnings for future iterations:**
+  - Keyboard resize uses a transaction boundary: keydown accumulates changes,
+    keyup commits the canvas output, and Escape restores the captured inline
+    styles.
+  - Keyboard and pointer paths should continue to share the pure resize math
+    so free-form and minimum-dimension rules cannot diverge.

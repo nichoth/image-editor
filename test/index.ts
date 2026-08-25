@@ -351,35 +351,36 @@ test('exposes numeric minimum dimensions with 50px defaults', t => {
     t.equal(el.minHeight, 90)
 })
 
-test('clamps constrained resize while preserving its aspect ratio', async t => {
-    document.body.innerHTML = `
-        <image-editor min-width="100" min-height="80">
-            <img src="image.jpg" width="320" height="240" alt="A test">
-        </image-editor>
-    `
+test('clamps constrained resize while preserving its aspect ratio',
+    async t => {
+        document.body.innerHTML = `
+            <image-editor min-width="100" min-height="80">
+                <img src="image.jpg" width="320" height="240" alt="A test">
+            </image-editor>
+        `
 
-    const el = document.querySelector('image-editor')
-    const handle = el?.querySelector('.bottom-right') as HTMLElement
-    const image = el?.querySelector('img') as HTMLImageElement
+        const el = document.querySelector('image-editor')
+        const handle = el?.querySelector('.bottom-right') as HTMLElement
+        const image = el?.querySelector('img') as HTMLImageElement
 
-    handle.dispatchEvent(new PointerEvent('pointerdown', {
-        bubbles: true,
-        clientX: 320,
-        clientY: 240,
-        pointerId: 13
-    }))
-    handle.dispatchEvent(new PointerEvent('pointermove', {
-        bubbles: true,
-        clientX: 0,
-        clientY: 0,
-        pointerId: 13
-    }))
+        handle.dispatchEvent(new PointerEvent('pointerdown', {
+            bubbles: true,
+            clientX: 320,
+            clientY: 240,
+            pointerId: 13
+        }))
+        handle.dispatchEvent(new PointerEvent('pointermove', {
+            bubbles: true,
+            clientX: 0,
+            clientY: 0,
+            pointerId: 13
+        }))
 
-    await new Promise(resolve => requestAnimationFrame(resolve))
+        await new Promise(resolve => requestAnimationFrame(resolve))
 
-    t.equal(image.style.width, '107px')
-    t.equal(image.style.height, '80px')
-})
+        t.equal(image.style.width, '107px')
+        t.equal(image.style.height, '80px')
+    })
 
 test('clamps free-form resize axes to their minimum dimensions', async t => {
     document.body.innerHTML = `
@@ -576,3 +577,179 @@ test('falls back to drawing the image when bitmap creation is unavailable',
         HTMLCanvasElement.prototype.getContext = originalGetContext
         HTMLCanvasElement.prototype.toBlob = originalToBlob
     })
+
+test('makes handles focusable and resizes proportionally with keyboard input',
+    async t => {
+        document.body.innerHTML = `
+            <image-editor>
+                <img src="image.jpg" width="320" height="240" alt="A test">
+            </image-editor>
+        `
+
+        const el = document.querySelector('image-editor')
+        const handle = el?.querySelector('.bottom-right') as HTMLElement
+        const image = el?.querySelector('img') as HTMLImageElement
+        const handles = Array.from(el?.querySelectorAll(
+            '.image-editor-handle'
+        ) ?? [])
+        const startEvents:Array<Event> = []
+        el?.addEventListener('image-editor:resize-start', event => {
+            startEvents.push(event)
+        })
+
+        const labels = handles.map(handle => handle.getAttribute('aria-label'))
+
+        handle.dispatchEvent(new KeyboardEvent('keydown', {
+            bubbles: true,
+            key: 'ArrowRight'
+        }))
+        handle.dispatchEvent(new KeyboardEvent('keydown', {
+            bubbles: true,
+            key: 'ArrowRight',
+            shiftKey: true
+        }))
+
+        t.equal(handle.getAttribute('tabindex'), '0')
+        t.equal(labels.includes('Resize from top-left corner'), true)
+        t.equal(labels.includes('Resize from top-right corner'), true)
+        t.equal(labels.includes('Resize from bottom-left corner'), true)
+        t.equal(labels.includes('Resize from bottom-right corner'), true)
+        t.equal(startEvents.length, 1)
+        t.equal(image.style.width, '380px')
+        t.equal(image.style.height, '285px')
+
+        handle.dispatchEvent(new KeyboardEvent('keyup', {
+            bubbles: true,
+            key: 'ArrowRight'
+        }))
+        await new Promise(resolve => setTimeout(resolve, 0))
+    })
+
+test('keyboard resize supports free-form dimensions and minimums', t => {
+    document.body.innerHTML = `
+        <image-editor free-form min-width="350" min-height="280">
+            <img src="image.jpg" width="400" height="300" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const handle = el?.querySelector('.bottom-right') as HTMLElement
+    const image = el?.querySelector('img') as HTMLImageElement
+
+    handle.dispatchEvent(new KeyboardEvent('keydown', {
+        bubbles: true,
+        key: 'ArrowLeft',
+        shiftKey: true
+    }))
+    handle.dispatchEvent(new KeyboardEvent('keydown', {
+        bubbles: true,
+        key: 'ArrowUp',
+        shiftKey: true
+    }))
+
+    t.equal(image.style.width, '350px')
+    t.equal(image.style.height, '280px')
+
+    handle.dispatchEvent(new KeyboardEvent('keyup', {
+        bubbles: true,
+        key: 'ArrowUp'
+    }))
+})
+
+test('Escape restores dimensions and cancels keyboard resize', t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const handle = el?.querySelector('.bottom-right') as HTMLElement
+    const image = el?.querySelector('img') as HTMLImageElement
+
+    handle.dispatchEvent(new KeyboardEvent('keydown', {
+        bubbles: true,
+        key: 'ArrowRight'
+    }))
+    t.equal(image.style.width, '330px')
+    t.equal(image.style.height, '248px')
+    handle.dispatchEvent(new KeyboardEvent('keydown', {
+        bubbles: true,
+        key: 'Escape'
+    }))
+
+    t.equal(image.style.width, '')
+    t.equal(image.style.height, '')
+
+    handle.dispatchEvent(new KeyboardEvent('keyup', {
+        bubbles: true,
+        key: 'ArrowRight'
+    }))
+})
+
+test('keyboard resize emits a canvas blob on keyup', async t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const handle = el?.querySelector('.bottom-right') as HTMLElement
+    const originalCreateImageBitmap = globalThis.createImageBitmap
+    const originalGetContext = HTMLCanvasElement.prototype.getContext
+    const originalToBlob = HTMLCanvasElement.prototype.toBlob
+    const browser = globalThis as {
+        createImageBitmap?: typeof globalThis.createImageBitmap
+    }
+    const blob = new Blob(['keyboard-resized'])
+    let blobWidth = 0
+    let blobHeight = 0
+    let didDraw = false
+    const resizeEnds:Array<CustomEvent<{
+        blob:Blob
+        width:number
+        height:number
+    }>> = []
+
+    browser.createImageBitmap = undefined
+    HTMLCanvasElement.prototype.getContext = (() => ({
+        drawImage () {
+            didDraw = true
+        }
+    })) as unknown as typeof HTMLCanvasElement.prototype.getContext
+    HTMLCanvasElement.prototype.toBlob = function (callback) {
+        blobWidth = this.width
+        blobHeight = this.height
+        callback(blob)
+    }
+    el?.addEventListener('image-editor:resize-end', event => {
+        resizeEnds.push(event as CustomEvent<{
+            blob:Blob
+            width:number
+            height:number
+        }>)
+    })
+
+    handle.dispatchEvent(new KeyboardEvent('keydown', {
+        bubbles: true,
+        key: 'ArrowRight'
+    }))
+    handle.dispatchEvent(new KeyboardEvent('keyup', {
+        bubbles: true,
+        key: 'ArrowRight'
+    }))
+    await new Promise(resolve => setTimeout(resolve, 0))
+
+    t.equal(resizeEnds.length, 1)
+    t.equal(resizeEnds[0]?.detail.blob, blob)
+    t.equal(resizeEnds[0]?.detail.width, 330)
+    t.equal(resizeEnds[0]?.detail.height, 248)
+    t.equal(blobWidth, 330)
+    t.equal(blobHeight, 248)
+    t.ok(didDraw)
+
+    browser.createImageBitmap = originalCreateImageBitmap
+    HTMLCanvasElement.prototype.getContext = originalGetContext
+    HTMLCanvasElement.prototype.toBlob = originalToBlob
+})

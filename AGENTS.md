@@ -9,3 +9,7 @@ camelCase, while keeping the attribute as the source of truth.
 Numeric kebab-case attributes use `static reflectedStringAttributes` for
 observation and a typed camel-case accessor that parses and validates the
 attribute value on read.
+
+Keyboard resize interactions capture their starting dimensions, inline styles,
+and resize mode in private state; reuse `resize-math.ts` for keyboard deltas so
+keyboard and pointer constraints stay consistent.

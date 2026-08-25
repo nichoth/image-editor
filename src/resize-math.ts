@@ -20,6 +20,14 @@ type ResizeMathOptions = {
     readonly startY:number
 }
 
+type KeyboardResizeKey = 'ArrowUp' | 'ArrowRight' | 'ArrowDown' |
+    'ArrowLeft'
+
+type KeyboardResizeDelta = {
+    readonly x:number
+    readonly y:number
+}
+
 const DEFAULT_MINIMUM_DIMENSION = 50
 
 export function normalizeMinimumDimension (value:number):number {
@@ -73,4 +81,15 @@ export function getResizeDimensions (
         width: Math.round(start.width * safeScale),
         height: Math.round(start.height * safeScale)
     }
+}
+
+export function getKeyboardResizeDelta (
+    key:KeyboardResizeKey,
+    shiftKey:boolean
+):KeyboardResizeDelta {
+    const step = shiftKey ? 50 : 10
+    if (key === 'ArrowUp') return { x: 0, y: -step }
+    if (key === 'ArrowRight') return { x: step, y: 0 }
+    if (key === 'ArrowDown') return { x: 0, y: step }
+    return { x: -step, y: 0 }
 }
