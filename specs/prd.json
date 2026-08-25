@@ -1,0 +1,182 @@
+{
+  "project": "ImageEditor",
+  "branchName": "ralph/image-editor",
+  "description": "Image Editor Web Component - drop-in <image-editor> that wraps an <img> with resize handles, edit/alt buttons, and canvas-based pixel resize",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Scaffold component to accept <img> child",
+      "description": "As a developer, I want the component to capture a child <img> element and render a wrapper structure so that overlay chrome can be layered on top.",
+      "acceptanceCriteria": [
+        "Rename class from Example to ImageEditor throughout src/index.ts",
+        "On connectedCallback, capture the first child <img> element before render",
+        "If no <img> child is found, render nothing and log a warning via @substrate-system/debug",
+        "Render wraps the captured <img> in a container div with class 'image-editor-container'",
+        "The child <img> displays at its natural or attributed size inside the container",
+        "Container has position:relative so overlay elements can be absolutely positioned",
+        "Update example/index.html and example/index.ts to include a child <img> element",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "CSS custom properties for theming",
+      "description": "As a developer, I want all visual values to use --image-editor-* CSS custom properties so I can theme the component to fit my design system.",
+      "acceptanceCriteria": [
+        "Create src/_vars.css with --image-editor-* custom properties for: handle-size, handle-bg, handle-border, outline-color, outline-width, outline-style, button-size, overlay-padding",
+        "Import _vars.css in src/index.css",
+        "All color, size, and spacing values in index.css reference the custom properties",
+        "Variables have sensible defaults (handle-size: 10px, outline: dashed 2px, etc.)",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Render dashed outline and corner handles",
+      "description": "As a developer, I want the image to display with a dashed border outline and four corner resize handles so the user sees visual affordances for resizing.",
+      "acceptanceCriteria": [
+        "Dashed border outline renders around the image boundary (always visible, not hover-dependent)",
+        "Outline uses CSS variables from _vars.css for width, color, and style",
+        "Four corner handle elements render at top-left, top-right, bottom-left, bottom-right",
+        "Handles are absolutely positioned at each corner of the container",
+        "Handles use correct cursor values: nwse-resize for top-left and bottom-right, nesw-resize for top-right and bottom-left",
+        "Handle styling: small squares (size from --image-editor-handle-size) with solid fill and border",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "Pointer-driven drag resize with aspect ratio lock",
+      "description": "As a user, I want to drag a corner handle to resize the image proportionally so that the aspect ratio is preserved during resize.",
+      "acceptanceCriteria": [
+        "Dragging any corner handle scales the image proportionally (aspect ratio locked)",
+        "Uses pointerdown/pointermove/pointerup events (not mouse events) for touch compatibility",
+        "Uses setPointerCapture so drag continues even if cursor leaves the handle",
+        "During drag, image dimensions update in real time via inline CSS (style.width, style.height)",
+        "Component emits image-editor:resize-start on pointerdown",
+        "Component emits image-editor:resize during drag with { width, height } detail, throttled via requestAnimationFrame",
+        "Aspect ratio is computed from the image's initial dimensions and preserved during drag",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "Canvas blob production on resize end",
+      "description": "As a developer, I want the component to produce a pixel-resized Blob when a drag ends so I can upload or process the resized image.",
+      "acceptanceCriteria": [
+        "On pointerup (drag end), draw the original image source to an offscreen canvas at the new dimensions",
+        "Use createImageBitmap where available for better quality, fall back to drawing from the <img> element",
+        "Produce a Blob via canvas.toBlob()",
+        "Component emits image-editor:resize-end with { blob, width, height } detail",
+        "The blob dimensions match the visual CSS dimensions",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "Edit button with pencil icon",
+      "description": "As a developer, I want a pencil icon button in the overlay so I can listen for an event and open my own editing UI.",
+      "acceptanceCriteria": [
+        "A pencil icon button renders in the overlay area at the top of the image",
+        "Overlay layout: flex, space-between, with controls on the right (matching image-input pattern)",
+        "Pencil icon uses the same SVG path as image-input's edit button",
+        "Clicking the button emits cancelable image-editor:edit event with { img } detail (reference to child <img>)",
+        "No built-in dialog opens -- the consumer handles the event",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "ALT badge button with MutationObserver",
+      "description": "As a developer, I want an ALT badge button that reflects the image's alt attribute so I can listen for an event and open my own alt-text UI.",
+      "acceptanceCriteria": [
+        "An ALT text badge button renders in the overlay area (left side, matching image-input pattern)",
+        "Badge shows '+ALT' when the child <img> has no alt attribute or empty alt",
+        "Badge shows 'ALT' when the child <img> has a non-empty alt attribute",
+        "Badge state updates via a MutationObserver watching the child <img>'s alt attribute",
+        "Clicking the badge emits cancelable image-editor:alt event with { alt, img } detail",
+        "No built-in dialog opens -- the consumer handles the event",
+        "MutationObserver is disconnected in disconnectedCallback",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "Free-form resize attribute",
+      "description": "As a developer, I want to opt into unconstrained resizing by adding a free-form attribute so width and height can change independently.",
+      "acceptanceCriteria": [
+        "When free-form attribute is present, dragging a handle allows independent width/height changes",
+        "Corner handles resize both axes freely (no aspect ratio lock)",
+        "The free-form attribute can be toggled at runtime and takes effect on the next drag",
+        "Reflected as a boolean property on the element",
+        "When free-form is removed, resize reverts to aspect-ratio-constrained behavior",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "Minimum size constraint",
+      "description": "As a developer, I want to set minimum dimensions so the image cannot be resized too small.",
+      "acceptanceCriteria": [
+        "min-width and min-height attributes set minimum pixel dimensions",
+        "Defaults to 50x50 if attributes are not specified",
+        "Dragging past the minimum snaps to the minimum size",
+        "min-width and min-height are reflected as numeric properties on the element",
+        "Minimum constraint applies in both constrained and free-form resize modes",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Keyboard-driven resize",
+      "description": "As a keyboard user, I want to resize the image using arrow keys when a handle is focused so I do not need a pointer device.",
+      "acceptanceCriteria": [
+        "Corner handles are focusable (tabindex='0')",
+        "Arrow keys resize the image when a handle is focused (default step: 10px)",
+        "Shift+Arrow resizes in larger steps (50px)",
+        "Escape cancels an in-progress keyboard resize sequence",
+        "Each handle has an appropriate ARIA label (e.g. 'Resize from top-right corner')",
+        "Keyboard resize respects aspect-ratio constraint (unless free-form is set)",
+        "Keyboard resize respects minimum size constraint",
+        "Keyboard resize produces a canvas blob and emits resize-end, same as pointer resize",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}

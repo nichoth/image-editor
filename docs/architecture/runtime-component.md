@@ -9,70 +9,43 @@ Authoritative sources are:
 
 ## Component map
 
-The runtime component is:
-
 - **Tag:** `image-editor`
-- **Owner:** `Example` in `src/index.ts`
+- **Owner:** `ImageEditor` in `src/index.ts`
 - **Entry point:** Import `src/index.ts` or the package root.
-- **Contract:** A self-registering custom element backed by
+- **Contract:** A self-registering element backed by
   `WebComponent.create('image-editor')`.
 
-`Example` is exported for consumers that need its static event helper or
-TypeScript type. The tag name is also registered in
-`HTMLElementTagNameMap` for `document.querySelector` typing.
+`ImageEditor` is exported and registered through the base class's idempotent
+path. The tag is registered in `HTMLElementTagNameMap`.
 
 ## Registration and lifecycle
 
-Importing `src/index.ts` has a registration side effect. `Example.define()`
-registers `image-editor` through the base class's idempotent path, so repeated
-imports do not throw. The first implementation registered for the tag wins.
-
-When connected, the element captures the authored light-DOM children as
-serialized `outerHTML` strings, calls the base `connectedCallback()` to render,
-and starts a `MutationObserver` for added child nodes. The observer only logs
-through the debug namespace `image-editor`.
-
-When disconnected, the observer is disconnected and cleared. The subclass
-must retain the call to `super.connectedCallback()`; the base callback is what
-invokes `render()`.
+On connection, the element captures the first authored `img` before calling
+`super.connectedCallback()`, which invokes `render()`. If no image exists,
+rendering is empty and a warning is sent to the `image-editor` debug namespace.
+The captured image is retained across reconnection.
 
 ## Rendered DOM and state interface
 
-Rendering replaces the element's contents with this structure:
+With an image, rendering produces:
 
 ```text
 image-editor
-└── div
-    ├── p       text from the `example` attribute, or "example"
-    └── ul
-        └── li  one item for each authored child
+└── div.image-editor-container
+    └── img     the first authored image
 ```
 
-The `example` string attribute is reflected to the `example` property by the
-base class. Its change handler updates the rendered paragraph in place and
-does not re-render the component. An attribute change can arrive before the
-first connection, so the handler tolerates a missing paragraph.
-
-The component does not currently expose image resize controls, canvas state,
-editing events, or an image-specific public API. Those belong to the planned
-feature described outside the runtime source.
+The container has `position: relative` for future overlay controls. With no
+image, the element has no rendered children.
 
 ## DOM and styling boundaries
 
-The component renders in light DOM by assigning `innerHTML`; it does not
-attach a shadow root. Authored children are preserved as markup in the first
-render, but later renders use the captured strings rather than live nodes.
-
-`src/index.css` defines the global `--color-red` palette entry, uses it for
-the component background, and hides the undefined element with
-`:not(:defined)`. The example adds a page-level FOUCE guard, waits for
-`customElements.whenDefined('image-editor')`, and reveals the page after
-definition or a two-second timeout. A `noscript` fallback reveals the page
-when JavaScript is disabled.
+The component renders in light DOM and does not attach a shadow root.
+`src/index.css` imports global image-editor custom-property defaults and hides
+the undefined element with `:not(:defined)`. The example uses a page-level
+FOUCE guard.
 
 ## Events
 
-The base class supplies namespaced `emit`, `on`, `off`, and static `event`
-helpers. No component-specific event is emitted by the current scaffold.
-Consumers must not infer the future `image-editor:*` event set from the
-planned requirements; it is not implemented here.
+The base class supplies namespaced event helpers. No component-specific event
+is emitted by this story.

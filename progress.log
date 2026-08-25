@@ -1,0 +1,21 @@
+## Codebase Patterns
+- The component uses `WebComponent.create('image-editor')` for registration.
+- Authored light-DOM content is captured in `connectedCallback()` before the
+  base class invokes `render()`.
+
+## 2026-08-25 01:45 - US-001
+- Implemented `ImageEditor` to capture the first child image and render it in
+  a relative `.image-editor-container`; missing images render nothing and log
+  a debug warning.
+- Updated the example, browser tests, CSS defaults, architecture documents,
+  and PRD completion flag.
+- Files changed: `src/index.ts`, `src/index.css`, `src/_vars.css`,
+  `example/index.html`, `example/index.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `specs/prd.json`, `progress.log`.
+- **Learnings for future iterations:**
+  - The base class invokes subclass `render()` from
+    `super.connectedCallback()`.
+  - Browser tests run through `npm test`; direct binaries are not on the
+    shell PATH outside npm scripts.
+---

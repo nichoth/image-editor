@@ -1,9 +1,11 @@
-:root {
-    --color-red: red;
-}
+@import './_vars.css';
 
 image-editor {
-    background-color: var(--color-red);
+    display: inline-block;
+}
+
+.image-editor-container {
+    position: relative;
 }
 
 /**

@@ -13,7 +13,8 @@ if (import.meta.env.DEV || import.meta.env.MODE !== 'production') {
 // rendered output as if it were authored content.
 document.body.insertAdjacentHTML(
     'beforeend',
-    '<image-editor></image-editor>'
+    '<image-editor><img src="./example.jpg" width="320" height="240"' +
+    ' alt="Example image"></image-editor>'
 )
 
 /**
