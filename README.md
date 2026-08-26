@@ -61,7 +61,7 @@ Put one image inside the element.
 </image-editor>
 ```
 
-The element captures the first `img` descendant when it connects and replaces
+The element captures the first `img` descendant when it connects. It replaces
 its light-DOM children with the rendered editor UI. If no image is present,
 the element renders no children and writes a warning to the `image-editor`
 debug namespace.
@@ -94,21 +94,15 @@ The package exports the `ImageEditor` class and registers the
 import { ImageEditor } from '@substrate-system/image-editor'
 ```
 
-The same package entry point can also be imported for side effects:
-
-```js
-import '@substrate-system/image-editor'
-```
-
 #### CommonJS
 
 ```js
 const { ImageEditor } = require('@substrate-system/image-editor')
 ```
 
-The class has the usual custom-element metadata and helpers, including
-`ImageEditor.TAG` and `ImageEditor.event('edit')`. The instance also supports
-the base component's `on()` and `off()` helpers:
+This extends [web-component](https://github.com/mycelial-systems/web-component),
+so it has `ImageEditor.TAG`, `ImageEditor.event('edit')`,
+and `on()` and `off()` methods.
 
 ```js
 const editor = document.querySelector('image-editor')
