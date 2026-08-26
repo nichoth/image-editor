@@ -6,11 +6,12 @@ import {
     getResizeDimensions,
     normalizeMinimumDimension
 } from './resize-math.js'
-import {
-    normalizeResizeVisibility,
-    shouldHideResizeAffordance,
-    type ResizeVisibility
-} from './resize-visibility.js'
+
+export type ResizeVisibility = 'hover'|'always'|'touch'
+
+const RESIZE_VISIBILITY_VALUES:ReadonlySet<string> = new Set([
+    'hover', 'always', 'touch'
+])
 
 const debug = Debug('image-editor')
 
@@ -157,6 +158,7 @@ export class ImageEditor extends withWildcards(
             pointerId: event.pointerId,
             handle
         }
+
         try {
             handle.setPointerCapture(event.pointerId)
         } catch (error) {
@@ -165,6 +167,7 @@ export class ImageEditor extends withWildcards(
                 throw error
             }
         }
+
         this.emit('resize-start')
     }
 
@@ -184,10 +187,10 @@ export class ImageEditor extends withWildcards(
         event.preventDefault()
         const delta = getKeyboardResizeDelta(event.key, event.shiftKey)
         const current = this._keyboardResizeState
-        const state = current?.handle === handle
-            ? current
-            : createKeyboardResizeState(this._image, this.freeForm,
-                corner, handle)
+        const state = (current?.handle === handle) ?
+            current :
+            createKeyboardResizeState(this._image, this.freeForm, corner, handle)
+
         if (!current || current.handle !== handle) {
             this._keyboardResizeState = state
             this.emit('resize-start')
@@ -202,10 +205,10 @@ export class ImageEditor extends withWildcards(
             corner: nextState.corner,
             start: nextState.start,
             freeForm: nextState.freeForm,
-            minWidth: this.minWidth,
-            minHeight: this.minHeight,
             clientX: nextState.deltaX,
             clientY: nextState.deltaY,
+            minWidth: this.minWidth,
+            minHeight: this.minHeight,
             startX: 0,
             startY: 0
         })
@@ -494,7 +497,7 @@ function updateResizeVisibility (
     touchDevice:boolean
 ):void {
     container.classList.toggle('hide-resize-affordance',
-        shouldHideResizeAffordance(visibility, touchDevice))
+        shouldHideHandles(visibility, touchDevice))
 }
 
 ImageEditor.define()
@@ -511,8 +514,25 @@ ImageEditor.define()
 function isTouchDevice () {
     return Boolean(
         'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
         // @ts-expect-error old
-        (window.DocumentTouch && document instanceof window.DocumentTouch)
+        (window.DocumentTouch &&
+        // @ts-expect-error old
+        document instanceof window.DocumentTouch)
     )
+}
+
+export function normalizeResizeVisibility (
+    value:string|null
+):ResizeVisibility {
+    if (value && RESIZE_VISIBILITY_VALUES.has(value)) {
+        return value as ResizeVisibility
+    }
+    return 'touch'
+}
+
+export function shouldHideHandles (
+    visibility:ResizeVisibility,
+    touchDevice:boolean
+):boolean {
+    return visibility === 'hover' || (visibility === 'touch' && !touchDevice)
 }
