@@ -43,15 +43,18 @@ image-editor
     └── span.image-editor-handle.bottom-right
 ```
 
-The container has `position: relative` and an always-visible dashed outline.
-Each handle is absolutely positioned at a container corner. Diagonal cursor
-values communicate the resize direction in both the stylesheet and the
-rendered handle style, while CSS custom properties control the handle and
-outline appearance. The overlay fills the container, uses flex layout with
-space between, places the `+ALT`/`ALT` badge on the left, and places the edit
-control on the right. The edit button uses the pencil path shared with
-`image-input` and has no built-in dialog behavior. The badge has no built-in
-dialog behavior either. With no image, the element has no rendered children.
+The container has `position: relative` and a dashed outline. The `visible`
+attribute controls whether the outline and handles are always shown or
+revealed on hover. Its default, `touch`, keeps them visible on touch devices
+and uses hover disclosure elsewhere. Each handle is absolutely positioned at
+a container corner. Diagonal cursor values communicate the resize direction
+in both the stylesheet and the rendered handle style, while CSS custom
+properties control the handle and outline appearance. The overlay fills the
+container, uses flex layout with space between, places the `+ALT`/`ALT` badge
+on the left, and places the edit control on the right. The edit button uses
+the pencil path shared with `image-input` and has no built-in dialog behavior.
+The badge has no built-in dialog behavior either. With no image, the element
+has no rendered children.
 
 Each handle listens for pointer events. A pointerdown records the image's
 rendered dimensions and pointer position, captures the pointer, and emits the

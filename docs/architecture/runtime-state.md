@@ -28,6 +28,10 @@ Authoritative sources are:
   attributes are exposed as numeric `minWidth` and `minHeight` properties.
   Missing, non-positive, or non-finite values resolve to the 50px default at
   the component boundary before the values enter resize math.
+- **Resize affordance visibility:** The reflected `visible` string attribute
+  accepts `hover`, `always`, or `touch`. Missing and unsupported values use
+  `touch`, which uses touch support to choose between visible controls and
+  hover disclosure.
 - **Resize output:** Pointerup creates a transient offscreen canvas and
   resolves a blob from either an image bitmap or the captured image element.
 
