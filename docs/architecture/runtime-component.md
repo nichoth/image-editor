@@ -33,17 +33,56 @@ With an image, rendering produces:
 image-editor
 └── div.image-editor-container
     ├── img     the first authored image
+    ├── div.image-editor-overlay
+    │   ├── button.alt
+    │   └── div.image-editor-controls
+    │       └── button.edit > svg > path
     ├── span.image-editor-handle.top-left
     ├── span.image-editor-handle.top-right
     ├── span.image-editor-handle.bottom-left
     └── span.image-editor-handle.bottom-right
 ```
 
-The container has `position: relative` and an always-visible dashed outline.
-Each handle is absolutely positioned at a container corner. Diagonal cursor
-values communicate the resize direction, while CSS custom properties control
-the handle and outline appearance. With no image, the element has no rendered
-children.
+The container has `position: relative` and a dashed outline. The `visible`
+attribute controls whether the outline and handles are always shown or
+revealed on hover. Its default, `touch`, keeps them visible on touch devices
+and uses hover disclosure elsewhere. Each handle is absolutely positioned at
+a container corner. Diagonal cursor values communicate the resize direction
+in both the stylesheet and the rendered handle style, while CSS custom
+properties control the handle and outline appearance. The overlay fills the
+container, uses flex layout with space between, places the `+ALT`/`ALT` badge
+on the left, and places the edit control on the right. The edit button uses
+the pencil path shared with `image-input` and has no built-in dialog behavior.
+The badge has no built-in dialog behavior either. With no image, the element
+has no rendered children.
+
+Each handle listens for pointer events. A pointerdown records the image's
+rendered dimensions and pointer position, captures the pointer, and emits the
+namespaced `image-editor:resize-start` event. Pointer movement keeps the
+image's aspect ratio by default, or changes width and height independently
+when the `free-form` attribute is present. It updates inline `width` and
+`height`. Pointerup emits one `resize` event with the dropped dimensions when
+the pointer moved, before asynchronous blob generation begins. The
+`freeForm` boolean property reflects the same `free-form` attribute, so
+property assignment and attribute changes both select the mode used by the
+next drag.
+The `min-width` and `min-height` attributes define positive pixel minimums,
+defaulting to 50px each. They are exposed as numeric `minWidth` and
+`minHeight` properties backed by the attributes. Constrained resizing clamps
+the proportional scale so both minimums are satisfied, while free-form
+resizing clamps each axis independently.
+Each handle is also focusable and exposes an ARIA label describing its corner.
+Arrow-key resizing uses 10px steps, or 50px with Shift, and keeps the same
+aspect-ratio and minimum-dimension rules as pointer resizing. The first arrow
+key in a keyboard sequence captures the starting dimensions and emits
+`resize-start`; keyup commits the sequence through the same canvas/blob path as
+pointerup. Escape restores the original inline dimensions and cancels the
+sequence.
+On pointerup, the final dimensions are rendered to an offscreen canvas. The
+component prefers `createImageBitmap(image)` as the draw source and falls
+back to the captured image element when bitmap creation is unavailable or
+fails. A `Blob` produced by `canvas.toBlob()` is emitted in the
+`image-editor:resize-end` detail with the final width and height.
 
 ## DOM and styling boundaries
 
@@ -56,5 +95,19 @@ FOUCE guard.
 
 ## Events
 
-The base class supplies namespaced event helpers. No component-specific event
-is emitted by this story.
+The base class supplies namespaced event helpers. US-004 adds
+`image-editor:resize-start` and `image-editor:resize`. The resize event is
+emitted once on pointerup after a drag and uses `{ width, height }` detail.
+Pointer movement only updates the inline image dimensions. US-005 adds
+`image-editor:resize-end` with `{ blob, width, height }` detail. Resize event
+dimensions are CSS pixels, and the blob canvas uses those same pixel
+dimensions. US-006 adds cancelable `image-editor:edit` with `{ img }`, where
+`img` is the captured `HTMLImageElement`; consumers own any editing UI. Resize
+interaction is pointer-based and uses pointer capture when the browser has an
+active pointer. US-007 adds cancelable `image-editor:alt` with `{ alt, img }`;
+`alt` is the image attribute value or an empty string when the attribute is
+absent. A `MutationObserver` watches only the captured image's `alt` attribute
+and updates the badge. The observer is disconnected with the component.
+Keyboard resizing emits the same namespaced resize events as pointer resizing;
+keyups commit the canvas output and Escape cancels without emitting
+`resize-end`.

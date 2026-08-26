@@ -2,13 +2,100 @@
 
 image-editor {
     display: inline-block;
+
+    &:not(:defined) {
+        display: none;
+    }
 }
 
 .image-editor-container {
     position: relative;
-    outline-color: var(--image-editor-outline-color);
-    outline-style: var(--image-editor-outline-style);
-    outline-width: var(--image-editor-outline-width);
+    outline: var(--image-editor-outline-width)
+        var(--image-editor-outline-style)
+        var(--image-editor-outline-color);
+}
+
+.image-editor-overlay {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    box-sizing: border-box;
+    padding: var(--image-editor-overlay-padding);
+    pointer-events: none;
+
+    & > * {
+        pointer-events: auto;
+    }
+
+    & button.alt, & button.edit {
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgb(255 255 255 / 35%);
+        background: var(--image-editor-button-bg);
+        color: white;
+        cursor: pointer;
+        transform: translate(0, 0);
+
+        &:hover {
+            background: var(--image-editor-button-bg-hover);
+            transform: translate(-1px, -1px);
+        }
+
+        &:active {
+            transform: translate(1px, 1px);
+        }
+    }
+
+    & button.alt {
+        height: var(--image-editor-button-size);
+        padding: 0 .75rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 15px;
+    }
+
+    & button.edit {
+        width: var(--image-editor-button-size);
+        height: var(--image-editor-button-size);
+        padding: var(--image-editor-button-padding);
+    }
+
+    & button.alt:focus-visible,
+    & button.edit:focus-visible {
+        outline: 2px solid var(--image-editor-button-focus-color);
+        outline-offset: 2px;
+    }
+
+    & button.edit svg {
+        width: var(--image-editor-button-icon-size);
+        height: var(--image-editor-button-icon-size);
+        fill: none;
+        stroke: currentcolor;
+        stroke-width: var(--image-editor-button-icon-stroke-width);
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+}
+
+.image-editor-controls {
+    display: flex;
+    margin-left: auto;
+
+    & button.icon {
+        border-radius: 50%;
+
+        &.edit {
+            & svg {
+                position: relative;
+                bottom: 1px;
+            }
+        }
+    }
 }
 
 .image-editor-handle {
@@ -21,38 +108,50 @@ image-editor {
         var(--image-editor-handle-border);
     box-sizing: border-box;
     transform: translate(-50%, -50%);
+
+    &.top-left {
+        top: 0;
+        left: 0;
+        cursor: nwse-resize;
+    }
+
+    &.top-right {
+        top: 0;
+        right: 0;
+        cursor: nesw-resize;
+        transform: translate(50%, -50%);
+    }
+
+    &.bottom-left {
+        bottom: 0;
+        left: 0;
+        cursor: nesw-resize;
+        transform: translate(-50%, 50%);
+    }
+
+    &.bottom-right {
+        right: 0;
+        bottom: 0;
+        cursor: nwse-resize;
+        transform: translate(50%, 50%);
+    }
 }
 
-.image-editor-handle.top-left {
-    top: 0;
-    left: 0;
-    cursor: nwse-resize;
-}
+.image-editor-container.hide-resize-affordance {
+    outline-color: var(--image-editor-outline-hidden-color);
 
-.image-editor-handle.top-right {
-    top: 0;
-    right: 0;
-    cursor: nesw-resize;
-    transform: translate(50%, -50%);
-}
+    &:hover, &:focus-within {
+        outline-color: var(--image-editor-outline-color);
+    }
 
-.image-editor-handle.bottom-left {
-    bottom: 0;
-    left: 0;
-    cursor: nesw-resize;
-    transform: translate(-50%, 50%);
-}
+    & .image-editor-handle {
+        opacity: 0;
+        pointer-events: none;
+    }
 
-.image-editor-handle.bottom-right {
-    right: 0;
-    bottom: 0;
-    cursor: nwse-resize;
-    transform: translate(50%, 50%);
-}
-
-/**
- * Don't show until JavaScript is instantiated
- */
-image-editor:not(:defined) {
-    display: none;
+    &:hover .image-editor-handle,
+    &:focus-within .image-editor-handle {
+        opacity: 1;
+        pointer-events: auto;
+    }
 }

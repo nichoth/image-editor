@@ -1,11 +1,18 @@
 :root {
+    --image-editor-outline-color: black;
+    --image-editor-outline-hidden-color: transparent;
+    --image-editor-outline-width: 2px;
+    --image-editor-outline-style: dashed;
     --image-editor-handle-size: 10px;
     --image-editor-handle-bg: white;
     --image-editor-handle-border: black;
     --image-editor-handle-border-width: 1px;
-    --image-editor-outline-color: black;
-    --image-editor-outline-width: 2px;
-    --image-editor-outline-style: dashed;
-    --image-editor-button-size: 32px;
+    --image-editor-button-size: 2rem;
+    --image-editor-button-icon-size: 1.125rem;
+    --image-editor-button-bg: rgb(0 0 0 / 65%);
+    --image-editor-button-bg-hover: rgb(0 0 0 / 80%);
+    --image-editor-button-focus-color: #1d9bf0;
+    --image-editor-button-padding: 0;
+    --image-editor-button-icon-stroke-width: 2px;
     --image-editor-overlay-padding: 8px;
 }

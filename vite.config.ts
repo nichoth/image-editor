@@ -14,18 +14,20 @@ export default defineConfig({
     },
     publicDir: '_public',
     css: {
+        devSourcemap: true,
         transformer: 'lightningcss',
         lightningcss: {
             targets: browserslistToTargets(browserslist('>= 0.25%')),
         },
     },
     server: {
-        port: 8888,
+        port: 2222,
         host: true,
         open: true,
     },
     build: {
         minify: false,
+        cssMinify: 'lightningcss',
         outDir: '../public',
         emptyOutDir: true,
         sourcemap: 'inline'

@@ -2,6 +2,18 @@
 - The component uses `WebComponent.create('image-editor')` for registration.
 - Authored light-DOM content is captured in `connectedCallback()` before the
   base class invokes `render()`.
+- Reflected attributes use exact HTML names in the base class; kebab-case
+  attributes can expose a typed camel-case accessor backed by that attribute.
+- Corner affordances keep their cursor direction in the rendered handle style
+  as well as the stylesheet, so the direction remains observable and stable
+  during later pointer interaction work.
+- Pure resize calculations live in `src/resize-math.ts`; DOM and pointer
+  orchestration stays in `src/index.ts`.
+- DOM observers are created after base-class rendering and disconnected in the
+  custom element lifecycle.
+- Numeric kebab-case attributes use `reflectedStringAttributes` with typed
+  camel-case accessors; getters validate the attribute source before passing
+  values into pure interaction math.
 
 ## 2026-08-25 01:45 - US-001
 - Implemented `ImageEditor` to capture the first child image and render it in
@@ -34,3 +46,153 @@
     typecheck, lint, and the existing browser suite provide the relevant
     regression coverage.
 ---
+
+## 2026-08-25 02:30 - US-003
+- Completed the resize affordance contract with four corner handles, an
+  always-visible dashed outline, absolute corner positioning, and diagonal
+  cursor directions.
+- Added browser coverage for the rendered cursor directions and retained the
+  existing DOM coverage for all four corners.
+- Files changed: `src/index.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`, `specs/prd.json`,
+  `progress.log`.
+- **Learnings for future iterations:**
+  - The tapzero browser harness exposes `ok` and `equal`, but not `match`;
+    assertions should use observable DOM state.
+  - The test server does not serve source CSS by URL, so stylesheet behavior
+    is covered through the rendered component contract and build checks.
+---
+
+## 2026-08-25 03:00 - US-004
+- Implemented pointer-driven, aspect-ratio-locked corner resizing with
+  pointer capture, inline image dimensions, and rAF-throttled resize events.
+- Added focused browser tests covering resize-start, pointer capture,
+  proportional dimensions, and resize event detail.
+- Updated runtime architecture documentation and marked US-004 complete.
+- Files changed: `src/index.ts`, `src/resize-math.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `specs/prd.json`, `progress.log`.
+- **Learnings for future iterations:**
+  - Resize calculations belong in a pure helper; pointer and DOM work stays
+    in the component shell.
+  - Synthetic browser pointer events may not have an active pointer, so
+    `setPointerCapture` must tolerate `NotFoundError` in tests.
+---
+
+## 2026-08-25 03:30 - US-005
+- Implemented canvas blob production when pointer resizing ends.
+- The component sizes an offscreen canvas to the final visual dimensions,
+  prefers `createImageBitmap`, falls back to the captured image, closes any
+  bitmap, and emits `image-editor:resize-end` with `{ blob, width, height }`.
+- Added browser coverage for both bitmap and fallback draw paths, updated
+  runtime architecture documentation, and marked US-005 complete.
+- Files changed: `src/index.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `specs/prd.json`, `progress.log`.
+- **Learnings for future iterations:**
+  - Canvas output is transient and should not become component state; only
+    the emitted blob and dimensions cross the public event boundary.
+  - Browser tests can replace canvas methods and restore them after asserting
+    draw source, canvas dimensions, and blob output.
+---
+
+## 2026-08-25 02:07 - US-006
+- Added a flex overlay with a right-aligned pencil edit button using the
+  published `image-input` SVG path.
+- Clicking the button prevents native button behavior and emits cancelable
+  `image-editor:edit` with the captured image in `detail.img`; no dialog is
+  created.
+- Added browser coverage for the rendered button, SVG path, event detail,
+  cancelability, and dialog absence.
+- Updated button theme variables, runtime architecture documentation, and the
+  PRD completion flag.
+- Files changed: `src/index.ts`, `src/index.css`, `src/_vars.css`,
+  `test/index.ts`, `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `specs/prd.json`, `progress.log`.
+- **Learnings for future iterations:**
+  - `WebComponent.emit()` provides the required namespaced,
+    bubbling, cancelable event contract by default.
+  - The image-input edit control uses the pencil path
+    `M4 20h4L18.5 9.5a2.1 2.1 0 0 0 -3-3L5 17v3z`.
+  - Adding an overlay changes the container child count, so DOM structure
+    assertions must be updated with the architecture contract.
+---
+
+## 2026-08-25 04:00 - US-007
+- Added a left-side ALT badge button that shows `+ALT` for absent or empty
+  alt text and `ALT` for a non-empty alt attribute.
+- Added cancelable `image-editor:alt` events with `{ alt, img }` detail.
+- Added a MutationObserver for the captured image's `alt` attribute and
+  disconnect it in `disconnectedCallback()`.
+- Added browser coverage for badge rendering, event detail, mutation updates,
+  overlay ordering, and observer disconnection.
+- Updated the button styling and runtime architecture documentation, then
+  marked US-007 complete.
+- Files changed: `src/index.ts`, `src/index.css`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `specs/prd.json`, `progress.log`.
+- **Learnings for future iterations:**
+  - Normalize an absent `alt` attribute to an empty string at the event
+    boundary so consumers receive one stable detail type.
+---
+
+## 2026-08-25 05:00 - US-008
+- Added the reflected `free-form` boolean attribute and `freeForm` property.
+- Added independent width and height resize math for free-form mode while
+  preserving proportional resizing by default.
+- Captured resize mode at pointerdown so runtime changes apply to the next
+  drag, and added browser coverage for the property and mode transitions.
+- Updated runtime architecture documentation, reusable project guidance, and
+  marked US-008 complete in the PRD.
+- Files changed: `src/index.ts`, `src/resize-math.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `AGENTS.md`, `specs/prd.json`,
+  `progress.log`.
+- **Learnings for future iterations:**
+  - Capture attribute-driven interaction modes in private pointer state so a
+    runtime toggle cannot alter a drag already in progress.
+  - The browser fixture's image layout can be unstable after an unfinished
+    synthetic drag; reset or avoid reusing that layout when testing a second
+    pointer sequence.
+---
+
+## 2026-08-25 06:00 - US-009
+- Added reflected `min-width` and `min-height` attributes with numeric
+  `minWidth` and `minHeight` accessors and 50px defaults.
+- Applied minimum dimensions to both proportional and free-form pointer
+  resize calculations; constrained mode preserves the aspect ratio while
+  satisfying both minimums.
+- Added browser coverage for numeric reflection and both resize modes.
+- Updated runtime architecture documentation, reusable project guidance, and
+  marked US-009 complete in the PRD.
+- Files changed: `src/index.ts`, `src/resize-math.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `AGENTS.md`, `specs/prd.json`,
+  `progress.log`.
+- **Learnings for future iterations:**
+  - In aspect-ratio mode, use the larger minimum scale required by either
+    axis; clamping width and height independently would distort the image.
+  - Reflected string attributes can remain the source of truth while typed
+    numeric accessors normalize missing or invalid values at read time.
+---
+
+## 2026-08-25 07:00 - US-010
+- Added focusable, ARIA-labeled corner handles with arrow-key resizing using
+  10px steps and 50px Shift steps.
+- Added keyboard resize transactions that preserve aspect ratio by default,
+  support free-form mode and minimum dimensions, commit a canvas blob on
+  keyup, and restore inline dimensions on Escape.
+- Added browser coverage for accessibility attributes, proportional and
+  free-form keyboard resizing, cancellation, and blob output.
+- Updated runtime architecture documentation, reusable project guidance, and
+  marked US-010 complete in the PRD.
+- Files changed: `src/index.ts`, `src/resize-math.ts`, `test/index.ts`,
+  `docs/architecture/runtime-component.md`,
+  `docs/architecture/runtime-state.md`, `AGENTS.md`, `specs/prd.json`,
+  `progress.log`.
+- **Learnings for future iterations:**
+  - Keyboard resize uses a transaction boundary: keydown accumulates changes,
+    keyup commits the canvas output, and Escape restores the captured inline
+    styles.
+  - Keyboard and pointer paths should continue to share the pure resize math
+    so free-form and minimum-dimension rules cannot diverge.

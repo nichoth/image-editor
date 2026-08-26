@@ -10,7 +10,10 @@ docs/*
 !docs/adr/
 !docs/architecture/
 !docs/architecture/**
+!docs/fdr/
+!docs/fdr/**
 .claude
 tasks
 PROMPT.md
 ralph_codex.sh
+.superpowers

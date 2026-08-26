@@ -51,7 +51,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -64,13 +64,14 @@
         "Uses setPointerCapture so drag continues even if cursor leaves the handle",
         "During drag, image dimensions update in real time via inline CSS (style.width, style.height)",
         "Component emits image-editor:resize-start on pointerdown",
-        "Component emits image-editor:resize during drag with { width, height } detail, throttled via requestAnimationFrame",
+        "Pointer movement does not emit image-editor:resize",
+        "A dragged pointerup emits one image-editor:resize event",
         "Aspect ratio is computed from the image's initial dimensions and preserved during drag",
         "Typecheck passes",
         "Verify in browser using dev-browser skill"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -87,7 +88,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -104,7 +105,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -123,7 +124,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -140,7 +141,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 8,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -156,7 +157,7 @@
         "Typecheck passes"
       ],
       "priority": 9,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -175,7 +176,7 @@
         "Typecheck passes"
       ],
       "priority": 10,
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]

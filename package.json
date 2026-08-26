@@ -11,8 +11,7 @@
     "build-css": "lightningcss --nesting src/index.css -o dist/index.css",
     "build-css:min": "lightningcss --nesting --minify src/index.css -o dist/index.min.css",
     "build-cjs": "esbuild src/*.ts --format=cjs --keep-names --tsconfig=tsconfig.build.json --outdir=./dist --out-extension:.js=.cjs --sourcemap",
-    "build-cjs:min":
-      "npm run build-cjs -- --minify --out-extension:.js=.min.cjs",
+    "build-cjs:min": "npm run build-cjs -- --minify --out-extension:.js=.min.cjs",
     "build-esm": "esbuild src/*.ts --format=esm --metafile=dist/meta.json --keep-names --tsconfig=tsconfig.build.json --outdir=./dist --sourcemap && tsc --emitDeclarationOnly --project tsconfig.build.json --outDir dist",
     "build-esm:min": "esbuild ./src/*.ts --format=esm --keep-names --bundle --tsconfig=tsconfig.build.json --minify --out-extension:.js=.min.js --outdir=./dist --sourcemap",
     "build-example": "mkdir -p ./public && rm -rf ./public/* && NODE_ENV=development vite --mode staging --base=\"/image-editor\" build",
@@ -48,10 +47,12 @@
   },
   "dependencies": {
     "@substrate-system/debug": "^0.9.60",
-    "@substrate-system/web-component": "^0.0.56"
+    "@substrate-system/web-component": "^0.0.59"
   },
   "devDependencies": {
+    "@substrate-system/dialog": "^0.0.32",
     "@substrate-system/dom": "^0.1.13",
+    "@substrate-system/signs": "^0.2.4",
     "@substrate-system/tapout": "^0.0.37",
     "@substrate-system/tapzero": "^0.10.16",
     "@typescript-eslint/eslint-plugin": "^8.7.0",
