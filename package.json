@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "lint": "eslint \"./**/*.{ts,js}\"",
-    "test": "esbuild ./test/index.ts --bundle | tapout",
+    "test": "esbuild ./test/index.ts --bundle | node scripts/run-tests.mjs",
     "build-css": "lightningcss --nesting src/index.css -o dist/index.css",
     "build-css:min": "lightningcss --nesting --minify src/index.css -o dist/index.min.css",
     "build-cjs": "esbuild src/*.ts --format=cjs --keep-names --tsconfig=tsconfig.build.json --outdir=./dist --out-extension:.js=.cjs --sourcemap",
@@ -65,6 +65,7 @@
     "lightningcss": "^1.30.2",
     "lightningcss-cli": "^1.30.2",
     "markdown-toc": "^1.2.0",
+    "playwright": "^1.54.2",
     "stylelint": "^17.0.0",
     "stylelint-config-standard": "^40.0.0",
     "tap-spec": "^5.0.0",

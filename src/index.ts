@@ -1,3 +1,5 @@
+// pattern: Mixed (needs refactoring)
+
 import { WebComponent } from '@substrate-system/web-component'
 import { withWildcards } from '@substrate-system/web-component/wildcard'
 import Debug from '@substrate-system/debug'
@@ -189,7 +191,9 @@ export class ImageEditor extends withWildcards(
         const current = this._keyboardResizeState
         const state = (current?.handle === handle) ?
             current :
-            createKeyboardResizeState(this._image, this.freeForm, corner, handle)
+            createKeyboardResizeState(
+                this._image, this.freeForm, corner, handle
+            )
 
         if (!current || current.handle !== handle) {
             this._keyboardResizeState = state
@@ -258,22 +262,19 @@ export class ImageEditor extends withWildcards(
         const finalDimensions = dimensions ?? state.start
         this._resizeState = null
         this._resizeDimensions = null
+        if (!dimensions) return
+        this.emit('resize', { detail: dimensions })
+
         const blob = await createResizeBlob(this._image, {
             ...finalDimensions
         })
-        if (!dimensions) return
-        if (blob) {
-            this.emit('resize', {
-                detail: {
-                    ...dimensions,
-                    blob
-                }
-            })
-        } else {
-            this.emit('resize', {
-                detail: dimensions
-            })
-        }
+        if (!blob) return
+        this.emit<ResizeBlobDetail>('resize-end', {
+            detail: {
+                blob,
+                ...dimensions
+            }
+        })
     }
 
     handleEdit = (event:MouseEvent):void => {

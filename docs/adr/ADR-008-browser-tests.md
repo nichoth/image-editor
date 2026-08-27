@@ -16,8 +16,9 @@ than no suite.
 ## Decision
 
 Tests run in a real browser. `npm test` bundles `test/index.ts` with
-`esbuild` and pipes it to `tapout`, which runs it in a browser and
-reports TAP.
+`esbuild` and pipes it to `scripts/run-tests.mjs`. The runner injects the
+bundle into a local HTML file document and reports TAP without opening an
+HTTP server.
 
 `--bundle` is required, not incidental. Without it `esbuild` only
 transpiles, leaving bare specifiers like `@substrate-system/tapzero` in
@@ -39,7 +40,8 @@ Lifecycle behavior is tested against the real implementation, including
 the upgrade timing that emulation gets wrong.
 
 Tests need a browser present, which makes CI heavier than a Node-only
-runner and makes the suite unusable in environments without one.
+runner and makes the suite unusable in environments without one. The runner
+does not need a listening port or a development server.
 
 `waitFor` is required rather than merely preferred. Querying immediately
 after inserting markup races element upgrade, and the resulting failure
