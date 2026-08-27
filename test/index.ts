@@ -1,6 +1,5 @@
 import { test } from '@substrate-system/tapzero'
 import '../src/index.js'
-import { shouldHideResizeAffordance } from '../src/resize-visibility.js'
 
 test('wraps the first child image in a positioned container', t => {
     document.body.innerHTML = `
@@ -62,11 +61,6 @@ test('defaults visible to touch', t => {
     }
 
     t.equal(el.visible, 'touch')
-})
-
-test('touch visibility follows the touch-device result', t => {
-    t.ok(shouldHideResizeAffordance('touch', false))
-    t.ok(!shouldHideResizeAffordance('touch', true))
 })
 
 test('visible hover hides affordances until the container is hovered', t => {

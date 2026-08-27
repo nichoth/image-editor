@@ -1,20 +1,18 @@
-# @substrate-system/image-editor
+# image-editor
+[![tests](https://img.shields.io/github/actions/workflow/status/nichoth/image-editor/nodejs.yml?style=flat-square)](https://github.com/substrate-system/package/actions/workflows/nodejs.yml)
+[![types](https://img.shields.io/npm/types/@substrate-system/image-editor?style=flat-square)](README.md)
+[![module](https://img.shields.io/badge/module-ESM%2FCJS-blue?style=flat-square)](README.md)
+[![semantic versioning](https://img.shields.io/badge/semver-2.0.0-blue?logo=semver&style=flat-square)](https://semver.org/)
+[![Common Changelog](https://nichoth.github.io/badge/common-changelog.svg)](./CHANGELOG.md)
+[![install size](https://flat.badgen.net/packagephobia/install/@substrate-system/image-editor)](https://packagephobia.com/result?p=@substrate-system/image-editor)
+[![gzip size](https://flat.badgen.net/bundlephobia/minzip/@substrate-system/image-editor)](https://bundlephobia.com/package/@substrate-system/image-editor)
+[![dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen.svg?style=flat-square)](package.json)
+[![license](https://img.shields.io/badge/license-Big_Time-blue?style=flat-square)](LICENSE)
 
-[![npm][npm-badge]][npm-link]
-[![license][license-badge]][license-link]
 
-A light-DOM web component for resizing an image in the browser. It provides
-corner handles, keyboard resizing, an edit action, and an ALT-text action.
-The component owns the interaction UI; your application owns the edit and
-ALT-text dialogs or other follow-up behavior.
+A web component for resizing images in the browser.
 
 [See the live demo][demo-link].
-
-[npm-badge]: https://img.shields.io/npm/v/@substrate-system/image-editor
-[npm-link]: https://www.npmjs.com/package/@substrate-system/image-editor
-[license-badge]: https://img.shields.io/badge/license-Big_Time-blue
-[license-link]: ./LICENSE
-[demo-link]: https://nichoth.github.io/image-editor/
 
 ## Contents
 
@@ -34,21 +32,19 @@ ALT-text dialogs or other follow-up behavior.
 ## Install
 
 ```sh
-npm install @substrate-system/image-editor
+npm i -S @substrate-system/image-editor
 ```
 
 ## Quick start
 
-Import the element and its stylesheet from your application entry point.
-The module calls `window.customElements.define`, so you can just import
-then use the tag in your HTML.
+Import the element and its stylesheet, then use the tag in HTML.
 
 ```js
 import '@substrate-system/image-editor'
 import '@substrate-system/image-editor/css'
 ```
 
-Put one image inside the element.
+Depends on a child image element.
 
 ```html
 <image-editor>
@@ -61,21 +57,21 @@ Put one image inside the element.
 </image-editor>
 ```
 
-The element captures the first `img` descendant when it connects. It replaces
-its light-DOM children with the rendered editor UI. If no image is present,
+It captures the first `img` descendant when it connects. It replaces
+its children with the rendered editor UI. If no image is present,
 the element renders no children and writes a warning to the `image-editor`
 debug namespace.
 
 ## How it works
 
-- Drag any corner handle to resize the image.
-- Resizing preserves the aspect ratio by default.
-- Add `free-form` to resize width and height independently.
-- The default minimum size is 50 by 50 pixels.
-- Focus a corner handle and use the arrow keys for keyboard resizing.
-- The `ALT` or `+ALT` button emits an event for your ALT-text UI.
-- The pencil button emits an event for your image-editing UI.
-- Completed resizes can produce a canvas-generated `Blob`.
+* Drag any corner handle to resize the image.
+* Resizing preserves the aspect ratio by default.
+* Add `free-form` to resize width and height independently.
+* The default minimum size is 50 by 50 pixels.
+* Focus a corner handle and use the arrow keys for keyboard resizing.
+* The `ALT` or `+ALT` button emits an event for your ALT-text UI.
+* The pencil button emits an event for your image-editing UI.
+* Completed resizes can produce a canvas-generated `Blob`.
 
 The resize handles use pointer events and pointer capture, so a drag can
 continue if the pointer leaves the handle. The four handles are focusable and
@@ -105,8 +101,11 @@ so it has `ImageEditor.TAG`, `ImageEditor.event('edit')`,
 and `on()` and `off()` methods.
 
 ```js
-const editor = document.querySelector('image-editor')
+import { ImageEditor } from '@substrate-system/image-editor'
 
+const editor = document.querySelector(ImageEditor.TAG)
+
+// event type 'image-editor:edit'
 editor.on('edit', event => {
     console.log(event.detail.img)
 })
