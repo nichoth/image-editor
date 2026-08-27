@@ -40,7 +40,8 @@ subpaths in `package.json`:
 - `build-esm` emits non-bundled ESM files, a metafile, source maps, and
   declaration files.
 - `build-esm:min` emits bundled minified ESM files and source maps.
-- `build-css` and `build-css:min` compile the stylesheet with Lightning CSS.
+- `build-css` and `build-css:min` bundle all stylesheet imports with Lightning
+  CSS, producing self-contained CSS files.
 
 `npm run build-example` builds the Vite browser example into `public/`. The
 example imports source files directly; tests also import from `src/` and do

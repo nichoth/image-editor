@@ -8,8 +8,9 @@
   "scripts": {
     "lint": "eslint \"./**/*.{ts,js}\"",
     "test": "esbuild ./test/index.ts --bundle | node scripts/run-tests.mjs",
-    "build-css": "lightningcss --nesting src/index.css -o dist/index.css",
-    "build-css:min": "lightningcss --nesting --minify src/index.css -o dist/index.min.css",
+    "test:css": "node test/css.mjs",
+    "build-css": "node scripts/build-css.mjs",
+    "build-css:min": "node scripts/build-css.mjs --minify",
     "build-cjs": "esbuild src/*.ts --format=cjs --keep-names --tsconfig=tsconfig.build.json --outdir=./dist --out-extension:.js=.cjs --sourcemap",
     "build-cjs:min": "npm run build-cjs -- --minify --out-extension:.js=.min.cjs",
     "build-esm": "esbuild src/*.ts --format=esm --metafile=dist/meta.json --keep-names --tsconfig=tsconfig.build.json --outdir=./dist --sourcemap && tsc --emitDeclarationOnly --project tsconfig.build.json --outDir dist",
