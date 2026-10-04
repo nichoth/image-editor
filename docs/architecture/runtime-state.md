@@ -54,12 +54,14 @@ There are no server-side state writes. This is a client-side custom element.
   It writes dimensions to the image's inline styles. A dragged pointerup emits
   one resize event with the final dimensions.
 - Pointerup, pointercancel, or disconnection clears the active resize state.
-  A completed pointerup emits resize-end after canvas.toBlob() returns a
-  non-null blob, and closes any bitmap used for drawing.
+  A completed pointerup emits resize-end synchronously. Its blob field is a
+  promise for the canvas.toBlob() result that resolves to null on failure,
+  and the encoder closes any bitmap used for drawing.
 - The first arrow key on a focused handle starts a keyboard transaction.
   Arrow keys accumulate 10px steps, or 50px with Shift, through the same
-  constrained resize math. Keyup commits the dimensions through the canvas
-  blob path and emits resize-end. Escape restores the starting inline styles
+  constrained resize math. Without free-form, each step is mirrored onto the
+  other axis so both dimensions scale together. Keyup emits resize-end
+  synchronously with the same blob promise as pointerup. Escape restores the starting inline styles
   and clears the transaction without emitting resize-end.
 - Clicking the edit button prevents native button behavior and emits a
   cancelable edit event with the captured image. The component does not create
