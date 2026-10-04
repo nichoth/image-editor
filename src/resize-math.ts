@@ -83,6 +83,32 @@ export function getResizeDimensions (
     }
 }
 
+/**
+ * Mirror a single-axis keyboard delta onto the other axis so both
+ * dimensions change by the same scale. Without this, an aspect-ratio
+ * resize could never shrink from one arrow key, because shrinking needs
+ * both axes to move inward.
+ */
+export function getProportionalResizeDelta (
+    delta:KeyboardResizeDelta,
+    corner:ResizeCorner,
+    start:ResizeDimensions
+):KeyboardResizeDelta {
+    const horizontalDirection = corner.includes('right') ? 1 : -1
+    const verticalDirection = corner.includes('bottom') ? 1 : -1
+    const sign = horizontalDirection * verticalDirection
+    if (delta.x !== 0) {
+        return {
+            x: delta.x,
+            y: delta.x * sign * start.height / start.width
+        }
+    }
+    return {
+        x: delta.y * sign * start.width / start.height,
+        y: delta.y
+    }
+}
+
 export function getKeyboardResizeDelta (
     key:KeyboardResizeKey,
     shiftKey:boolean

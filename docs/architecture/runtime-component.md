@@ -81,8 +81,9 @@ sequence.
 On pointerup, the final dimensions are rendered to an offscreen canvas. The
 component prefers `createImageBitmap(image)` as the draw source and falls
 back to the captured image element when bitmap creation is unavailable or
-fails. A `Blob` produced by `canvas.toBlob()` is emitted in the
-`image-editor:resize-end` detail with the final width and height.
+fails. `image-editor:resize-end` is emitted synchronously, before encoding,
+with `{ blob, img, width, height }`. `blob` is a promise for the
+`canvas.toBlob()` result that resolves to `null` instead of rejecting.
 
 ## DOM and styling boundaries
 
@@ -99,7 +100,8 @@ The base class supplies namespaced event helpers. US-004 adds
 `image-editor:resize-start` and `image-editor:resize`. The resize event is
 emitted once on pointerup after a drag and uses `{ width, height }` detail.
 Pointer movement only updates the inline image dimensions. US-005 adds
-`image-editor:resize-end` with `{ blob, width, height }` detail. Resize event
+`image-editor:resize-end` with `{ blob, img, width, height }` detail, where
+`blob` is a `Promise<Blob|null>`. Resize event
 dimensions are CSS pixels, and the blob canvas uses those same pixel
 dimensions. US-006 adds cancelable `image-editor:edit` with `{ img }`, where
 `img` is the captured `HTMLImageElement`; consumers own any editing UI. Resize

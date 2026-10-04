@@ -559,13 +559,13 @@ test('produces a blob from an image bitmap when resizing ends', async t => {
     }
 
     const resizeEnds:Array<CustomEvent<{
-        blob:Blob
+        blob:Promise<Blob|null>
         width:number
         height:number
     }>> = []
     el?.addEventListener('image-editor:resize-end', event => {
         resizeEnds.push(event as CustomEvent<{
-            blob:Blob
+            blob:Promise<Blob|null>
             width:number
             height:number
         }>)
@@ -593,7 +593,7 @@ test('produces a blob from an image bitmap when resizing ends', async t => {
     await new Promise(resolve => setTimeout(resolve, 0))
 
     t.equal(resizeEnds.length, 1)
-    t.equal(resizeEnds[0]?.detail.blob, blob)
+    t.equal(await resizeEnds[0]?.detail.blob, blob)
     t.equal(resizeEnds[0]?.detail.width, 360)
     t.equal(resizeEnds[0]?.detail.height, 270)
     t.equal(blobWidth, 360)
@@ -643,7 +643,7 @@ test('falls back to drawing the image when bitmap creation is unavailable',
         }
 
         const resizeEnds:Array<{
-            blob:Blob
+            blob:Promise<Blob|null>
             width:number
             height:number
         }> = []
@@ -673,7 +673,7 @@ test('falls back to drawing the image when bitmap creation is unavailable',
         await new Promise(resolve => setTimeout(resolve, 0))
 
         t.equal(resizeEnds.length, 1)
-        t.equal(resizeEnds[0]?.blob, blob)
+        t.equal(await resizeEnds[0]?.blob, blob)
         t.equal(resizeEnds[0]?.width, 360)
         t.equal(resizeEnds[0]?.height, 270)
         t.equal(blobWidth, 360)
@@ -683,6 +683,69 @@ test('falls back to drawing the image when bitmap creation is unavailable',
         browser.createImageBitmap = originalCreateImageBitmap
         HTMLCanvasElement.prototype.getContext = originalGetContext
         HTMLCanvasElement.prototype.toBlob = originalToBlob
+    })
+
+test('pointer resize-end reaches the parent before the editor is detached',
+    async t => {
+        document.body.innerHTML = `
+            <div class="preview">
+                <image-editor>
+                    <img src="image.jpg" width="320" height="240" alt="A">
+                </image-editor>
+            </div>
+        `
+
+        const preview = document.querySelector('.preview') as HTMLElement
+        const el = document.querySelector('image-editor') as HTMLElement
+        const handle = el.querySelector('.bottom-right') as HTMLElement
+        const image = el.querySelector('img') as HTMLImageElement
+        const originalToBlob = HTMLCanvasElement.prototype.toBlob
+        const blob = new Blob(['resized'])
+        HTMLCanvasElement.prototype.toBlob = function (callback) {
+            callback(blob)
+        }
+
+        const resizeEnds:Array<{
+            blob:Promise<Blob|null>
+            img:HTMLImageElement
+            width:number
+            height:number
+        }> = []
+        preview.addEventListener('image-editor:resize-end', event => {
+            resizeEnds.push((event as CustomEvent).detail)
+        })
+
+        try {
+            handle.dispatchEvent(new PointerEvent('pointerdown', {
+                bubbles: true,
+                clientX: 320,
+                clientY: 240,
+                pointerId: 11
+            }))
+            handle.dispatchEvent(new PointerEvent('pointermove', {
+                bubbles: true,
+                clientX: 360,
+                clientY: 270,
+                pointerId: 11
+            }))
+            handle.dispatchEvent(new PointerEvent('pointerup', {
+                bubbles: true,
+                clientX: 360,
+                clientY: 270,
+                pointerId: 11
+            }))
+            // simulate the consumer re-rendering its preview
+            preview.replaceChildren()
+
+            t.equal(resizeEnds.length, 1, 'resize-end fires on pointerup')
+            t.equal(resizeEnds[0]?.img, image, 'detail includes the image')
+            t.equal(resizeEnds[0]?.width, 360)
+            t.equal(resizeEnds[0]?.height, 270)
+            t.equal(await resizeEnds[0]?.blob, blob,
+                'detail.blob resolves to the encoded blob')
+        } finally {
+            HTMLCanvasElement.prototype.toBlob = originalToBlob
+        }
     })
 
 test('makes handles focusable and resizes proportionally with keyboard input',
@@ -731,6 +794,38 @@ test('makes handles focusable and resizes proportionally with keyboard input',
         }))
         await new Promise(resolve => setTimeout(resolve, 0))
     })
+
+test('a single arrow key shrinks a constrained image proportionally', t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="400" height="200" alt="A test">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor')
+    const handle = el?.querySelector('.bottom-right') as HTMLElement
+    const image = el?.querySelector('img') as HTMLImageElement
+
+    handle.dispatchEvent(new KeyboardEvent('keydown', {
+        bubbles: true,
+        key: 'ArrowLeft'
+    }))
+    t.equal(image.style.width, '390px', 'ArrowLeft shrinks the width')
+    t.equal(image.style.height, '195px', 'height follows the aspect ratio')
+
+    handle.dispatchEvent(new KeyboardEvent('keydown', {
+        bubbles: true,
+        key: 'ArrowUp',
+        shiftKey: true
+    }))
+    t.equal(image.style.height, '145px', 'ArrowUp shrinks the height')
+    t.equal(image.style.width, '290px', 'width follows the aspect ratio')
+
+    handle.dispatchEvent(new KeyboardEvent('keyup', {
+        bubbles: true,
+        key: 'ArrowUp'
+    }))
+})
 
 test('keyboard resize supports free-form dimensions and minimums', t => {
     document.body.innerHTML = `
@@ -814,7 +909,7 @@ test('keyboard resize emits a canvas blob on keyup', async t => {
     let blobHeight = 0
     let didDraw = false
     const resizeEnds:Array<CustomEvent<{
-        blob:Blob
+        blob:Promise<Blob|null>
         width:number
         height:number
     }>> = []
@@ -832,7 +927,7 @@ test('keyboard resize emits a canvas blob on keyup', async t => {
     }
     el?.addEventListener('image-editor:resize-end', event => {
         resizeEnds.push(event as CustomEvent<{
-            blob:Blob
+            blob:Promise<Blob|null>
             width:number
             height:number
         }>)
@@ -849,7 +944,7 @@ test('keyboard resize emits a canvas blob on keyup', async t => {
     await new Promise(resolve => setTimeout(resolve, 0))
 
     t.equal(resizeEnds.length, 1)
-    t.equal(resizeEnds[0]?.detail.blob, blob)
+    t.equal(await resizeEnds[0]?.detail.blob, blob)
     t.equal(resizeEnds[0]?.detail.width, 330)
     t.equal(resizeEnds[0]?.detail.height, 248)
     t.equal(blobWidth, 330)
@@ -859,4 +954,98 @@ test('keyboard resize emits a canvas blob on keyup', async t => {
     browser.createImageBitmap = originalCreateImageBitmap
     HTMLCanvasElement.prototype.getContext = originalGetContext
     HTMLCanvasElement.prototype.toBlob = originalToBlob
+})
+
+test('keyboard resize-end reaches the parent before the editor is detached',
+    async t => {
+        document.body.innerHTML = `
+            <div class="preview">
+                <image-editor>
+                    <img src="image.jpg" width="320" height="240" alt="A">
+                </image-editor>
+            </div>
+        `
+
+        const preview = document.querySelector('.preview') as HTMLElement
+        const el = document.querySelector('image-editor') as HTMLElement
+        const handle = el.querySelector('.bottom-right') as HTMLElement
+        const image = el.querySelector('img') as HTMLImageElement
+        const originalToBlob = HTMLCanvasElement.prototype.toBlob
+        const blob = new Blob(['keyboard-resized'])
+        HTMLCanvasElement.prototype.toBlob = function (callback) {
+            callback(blob)
+        }
+
+        const resizeEnds:Array<{
+            blob:Promise<Blob|null>
+            img:HTMLImageElement
+            width:number
+            height:number
+        }> = []
+        preview.addEventListener('image-editor:resize-end', event => {
+            resizeEnds.push((event as CustomEvent).detail)
+        })
+
+        try {
+            handle.dispatchEvent(new KeyboardEvent('keydown', {
+                bubbles: true,
+                key: 'ArrowRight'
+            }))
+            handle.dispatchEvent(new KeyboardEvent('keyup', {
+                bubbles: true,
+                key: 'ArrowRight'
+            }))
+            // simulate the consumer re-rendering its preview
+            preview.replaceChildren()
+
+            t.equal(resizeEnds.length, 1, 'resize-end fires on keyup')
+            t.equal(resizeEnds[0]?.img, image, 'detail includes the image')
+            t.equal(resizeEnds[0]?.width, 330)
+            t.equal(resizeEnds[0]?.height, 248)
+            t.equal(await resizeEnds[0]?.blob, blob,
+                'detail.blob resolves to the encoded blob')
+        } finally {
+            HTMLCanvasElement.prototype.toBlob = originalToBlob
+        }
+    })
+
+test('resize-end blob resolves to null when encoding fails', async t => {
+    document.body.innerHTML = `
+        <image-editor>
+            <img src="image.jpg" width="320" height="240" alt="A">
+        </image-editor>
+    `
+
+    const el = document.querySelector('image-editor') as HTMLElement
+    const handle = el.querySelector('.bottom-right') as HTMLElement
+    const originalToBlob = HTMLCanvasElement.prototype.toBlob
+    HTMLCanvasElement.prototype.toBlob = function () {
+        throw new DOMException('Tainted canvas', 'SecurityError')
+    }
+
+    let blob:Promise<Blob|null>|null = null
+    el.addEventListener('image-editor:resize-end', event => {
+        blob = (event as CustomEvent).detail.blob
+    })
+
+    try {
+        handle.dispatchEvent(new KeyboardEvent('keydown', {
+            bubbles: true,
+            key: 'ArrowRight'
+        }))
+        handle.dispatchEvent(new KeyboardEvent('keyup', {
+            bubbles: true,
+            key: 'ArrowRight'
+        }))
+
+        let result:Blob|null|string = 'unresolved'
+        try {
+            result = await blob
+        } catch (_) {
+            result = 'rejected'
+        }
+        t.equal(result, null, 'blob resolves to null instead of rejecting')
+    } finally {
+        HTMLCanvasElement.prototype.toBlob = originalToBlob
+    }
 })

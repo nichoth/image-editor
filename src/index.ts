@@ -5,6 +5,7 @@ import { withWildcards } from '@substrate-system/web-component/wildcard'
 import Debug from '@substrate-system/debug'
 import {
     getKeyboardResizeDelta,
+    getProportionalResizeDelta,
     getResizeDimensions,
     normalizeMinimumDimension
 } from './resize-math.js'
@@ -46,8 +47,9 @@ type KeyboardResizeState = {
     readonly handle:HTMLElement
 }
 
-type ResizeBlobDetail = {
-    readonly blob:Blob
+export type ResizeEndDetail = {
+    readonly blob:Promise<Blob|null>
+    readonly img:HTMLImageElement
     readonly width:number
     readonly height:number
 }
@@ -187,7 +189,6 @@ export class ImageEditor extends withWildcards(
         if (!isKeyboardResizeKey(event.key)) return
 
         event.preventDefault()
-        const delta = getKeyboardResizeDelta(event.key, event.shiftKey)
         const current = this._keyboardResizeState
         const state = (current?.handle === handle) ?
             current :
@@ -199,6 +200,11 @@ export class ImageEditor extends withWildcards(
             this._keyboardResizeState = state
             this.emit('resize-start')
         }
+
+        const keyDelta = getKeyboardResizeDelta(event.key, event.shiftKey)
+        const delta = state.freeForm ?
+            keyDelta :
+            getProportionalResizeDelta(keyDelta, state.corner, state.start)
 
         const nextState = {
             ...state,
@@ -222,13 +228,13 @@ export class ImageEditor extends withWildcards(
         this.emit('resize', { detail: dimensions })
     }
 
-    handleKeyUp = async (event:KeyboardEvent):Promise<void> => {
+    handleKeyUp = (event:KeyboardEvent):void => {
         const state = this._keyboardResizeState
         if (!state || state.handle !== event.currentTarget ||
             !isKeyboardResizeKey(event.key)) {
             return
         }
-        await this.finishKeyboardResize(state)
+        this.finishKeyboardResize(state)
     }
 
     handlePointerMove = (event:PointerEvent):void => {
@@ -252,29 +258,18 @@ export class ImageEditor extends withWildcards(
         this._image.style.height = `${this._resizeDimensions.height}px`
     }
 
-    handlePointerUp = async (event:PointerEvent):Promise<void> => {
+    handlePointerUp = (event:PointerEvent):void => {
         const state = this._resizeState
         if (!state || state.pointerId !== event.pointerId) return
         if (state.handle.hasPointerCapture(event.pointerId)) {
             state.handle.releasePointerCapture(event.pointerId)
         }
         const dimensions = this._resizeDimensions
-        const finalDimensions = dimensions ?? state.start
         this._resizeState = null
         this._resizeDimensions = null
-        if (!dimensions) return
+        if (!dimensions || !this._image) return
         this.emit('resize', { detail: dimensions })
-
-        const blob = await createResizeBlob(this._image, {
-            ...finalDimensions
-        })
-        if (!blob) return
-        this.emit<ResizeBlobDetail>('resize-end', {
-            detail: {
-                blob,
-                ...dimensions
-            }
-        })
+        this.emitResizeEnd(this._image, dimensions)
     }
 
     handleEdit = (event:MouseEvent):void => {
@@ -302,17 +297,26 @@ export class ImageEditor extends withWildcards(
         this._keyboardResizeState = null
     }
 
-    private async finishKeyboardResize (
-        state:KeyboardResizeState
-    ):Promise<void> {
+    private finishKeyboardResize (state:KeyboardResizeState):void {
         if (this._keyboardResizeState !== state || !this._image) return
         this._keyboardResizeState = null
-        const blob = await createResizeBlob(this._image, state.dimensions)
-        if (!blob) return
-        this.emit<ResizeBlobDetail>('resize-end', {
+        this.emitResizeEnd(this._image, state.dimensions)
+    }
+
+    /**
+     * Emit resize-end synchronously so listeners receive it before a
+     * re-render can detach this element. The blob is encoded afterward
+     * and delivered as a promise.
+     */
+    private emitResizeEnd (
+        img:HTMLImageElement,
+        dimensions:{ readonly width:number; readonly height:number }
+    ):void {
+        this.emit<ResizeEndDetail>('resize-end', {
             detail: {
-                blob,
-                ...state.dimensions
+                blob: createResizeBlob(img, dimensions),
+                img,
+                ...dimensions
             }
         })
     }
@@ -363,6 +367,10 @@ async function createResizeBlob (
     try {
         context.drawImage(source, 0, 0, dimensions.width, dimensions.height)
         return await canvasToBlob(canvas)
+    } catch (error) {
+        // e.g. a SecurityError from a cross-origin image without CORS
+        debug('could not encode resized image', error)
+        return null
     } finally {
         bitmap?.close()
     }

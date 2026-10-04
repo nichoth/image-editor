@@ -215,31 +215,38 @@ The detail contains rounded CSS-pixel dimensions:
 
 ```js
 editor.addEventListener('image-editor:resize', event => {
-    const { width, height, blob } = event.detail
+    const { width, height } = event.detail
     console.log(width, height)
-
-    if (blob) {
-        // A canvas-generated Blob is available when canvas conversion worked.
-        upload(blob)
-    }
 })
 ```
 
-For pointer resizing, `blob` may be included in the detail after the canvas
-conversion completes. If canvas conversion cannot produce a blob, the detail
-still contains `width` and `height`.
-
 #### `image-editor:resize-end`
 
-Emitted when a keyboard resize sequence is committed on keyup and canvas
-conversion returns a blob. Its detail is always:
+Emitted synchronously when a pointer resize is released after a drag, or when
+a keyboard resize sequence is committed on keyup. Because it fires before the
+canvas work starts, listeners receive it even if a re-render detaches the
+element right afterward. Its detail is:
 
 ```js
 {
-    blob: Blob,
+    blob: Promise<Blob|null>,
+    img: HTMLImageElement,
     width: number,
     height: number
 }
+```
+
+`blob` resolves after canvas conversion finishes. It resolves to `null`,
+and never rejects, when conversion cannot produce a blob.
+
+```js
+editor.addEventListener('image-editor:resize-end', async event => {
+    const { img, width } = event.detail
+    saveWidth(img.src, width)
+
+    const blob = await event.detail.blob
+    if (blob) upload(blob)
+})
 ```
 
 The blob is drawn at the same pixel dimensions reported in the detail. For
@@ -287,7 +294,10 @@ After a handle receives focus:
 - Releasing an arrow key commits the current keyboard resize sequence.
 
 Keyboard resizing uses the same aspect-ratio and minimum-size rules as pointer
-resizing. `Escape` cancels the sequence and does not produce a resize-end
+resizing. Without `free-form`, each arrow key scales both dimensions together,
+so a single key can grow or shrink the image. Direction follows the handle:
+on the bottom-right handle, Right and Down grow the image and Left and Up
+shrink it. `Escape` cancels the sequence and does not produce a resize-end
 event.
 
 ## Styling
