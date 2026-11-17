@@ -48,13 +48,13 @@
   },
   "dependencies": {
     "@substrate-system/debug": "^0.9.60",
-    "@substrate-system/web-component": "^0.0.59"
+    "@substrate-system/web-component": "^0.0.61"
   },
   "devDependencies": {
-    "@substrate-system/dialog": "^0.0.32",
+    "@substrate-system/dialog": "^0.0.34",
     "@substrate-system/dom": "^0.1.13",
     "@substrate-system/signs": "^0.2.4",
-    "@substrate-system/tapout": "^0.0.37",
+    "@substrate-system/tapout": "^0.1.1",
     "@substrate-system/tapzero": "^0.10.16",
     "@typescript-eslint/eslint-plugin": "^8.7.0",
     "@typescript-eslint/parser": "^8.7.0",
@@ -67,11 +67,11 @@
     "lightningcss-cli": "^1.30.2",
     "markdown-toc": "^1.2.0",
     "playwright": "^1.54.2",
-    "stylelint": "^17.0.0",
-    "stylelint-config-standard": "^40.0.0",
+    "stylelint": "^18.0.0",
+    "stylelint-config-standard": "^41.0.0",
     "tap-spec": "^5.0.0",
     "typedoc": "^0.28.1",
-    "typescript": "^6.0.2",
+    "typescript": "^7.0.2",
     "vite": "^8.0.5"
   },
   "author": "nichoth <nichoth@nichoth.com> (https://nichoth.com)",
